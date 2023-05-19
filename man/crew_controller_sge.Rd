@@ -2,37 +2,40 @@
 % Please edit documentation in R/crew_controller_sge.R
 \name{crew_controller_sge}
 \alias{crew_controller_sge}
-\title{Create a controller with a Sun Grid Engine (SGE) launcher.}
+\title{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}} Create a controller with a
+Sun Grid Engine (SGE) launcher.}
 \usage{
 crew_controller_sge(
   name = NULL,
   workers = 1L,
   host = NULL,
   port = NULL,
+  seconds_interval = 0.25,
+  seconds_timeout = 10,
   seconds_launch = 60,
-  seconds_interval = 0.01,
-  seconds_timeout = 5,
   seconds_idle = Inf,
   seconds_wall = Inf,
-  seconds_exit = 0.1,
+  seconds_exit = 1,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  sge_qsub = as.character(Sys.which("qsub")),
-  sge_qdel = as.character(Sys.which("qdel")),
+  verbose = FALSE,
+  command_submit = as.character(Sys.which("qsub")),
+  command_delete = as.character(Sys.which("qdel")),
+  script_directory = tempdir(),
+  script_lines = character(0L),
   sge_cwd = TRUE,
   sge_envvars = FALSE,
-  sge_log_files = "/dev/null",
+  sge_log_output = "/dev/null",
+  sge_log_error = NULL,
   sge_log_join = TRUE,
-  sge_memory_gigabytes_required = NULL,
   sge_memory_gigabytes_limit = NULL,
+  sge_memory_gigabytes_required = NULL,
   sge_cores = NULL,
-  sge_gpu = NULL,
-  sge_lines = NULL,
-  auto_scale = "demand"
+  sge_gpu = NULL
 )
 }
 \arguments{
@@ -47,18 +50,18 @@ If \code{NULL}, the host defaults to the local IP address.}
 \item{port}{TCP port to listen for the workers. If \code{NULL},
 then an available ephemeral port is automatically chosen.}
 
-\item{seconds_launch}{Seconds of startup time to allow.
-A worker is unconditionally assumed to be alive
-from the moment of its launch until \code{seconds_launch} seconds later.
-After \code{seconds_launch} seconds, the worker is only
-considered alive if it is actively connected to its assign websocket.}
-
 \item{seconds_interval}{Number of seconds between
 polling intervals waiting for certain internal
 synchronous operations to complete.}
 
 \item{seconds_timeout}{Number of seconds until timing
 out while waiting for certain synchronous operations to complete.}
+
+\item{seconds_launch}{Seconds of startup time to allow.
+A worker is unconditionally assumed to be alive
+from the moment of its launch until \code{seconds_launch} seconds later.
+After \code{seconds_launch} seconds, the worker is only
+considered alive if it is actively connected to its assign websocket.}
 
 \item{seconds_idle}{Maximum number of seconds that a worker can idle
 since the completion of the last task. If exceeded, the worker exits.
@@ -103,11 +106,34 @@ because packages sometimes rely on options they set at loading time.}
 \item{garbage_collection}{\code{TRUE} to run garbage collection between
 tasks, \code{FALSE} to skip.}
 
-\item{sge_qsub}{Character of length 1, file path to the \code{qsub} executable
-used to submit \code{crew} workers as SGE jobs.}
+\item{verbose}{Logical, whether to see console output and error messages
+when submitting worker.}
 
-\item{sge_qdel}{Character of length 1, file path to the \code{qdel} executable
-used to delete the SGE jobs running \code{crew} workers.}
+\item{command_submit}{Character of length 1,
+file path to the executable to submit a worker job.}
+
+\item{command_delete}{Character of length 1,
+file path to the executable to delete a worker job.
+Set to \code{""} to skip manually terminating the worker.
+Unless there is an issue with the platform,
+the job should still exit thanks to the NNG-powered network programming
+capabilities of \code{mirai}. Still, if you set \code{command_delete = ""},
+you are assuming extra responsibility for manually monitoring
+your jobs on the cluster and manually terminating jobs as appropriate.}
+
+\item{script_directory}{Character of length 1, directory path to the
+job scripts. Just before each job submission, a job script
+is created in this folder. Script base names are unique to each
+launcher and worker, and the launcher deletes the script when the
+worker is manually terminated. \code{tempdir()} is the default, but it
+might not work for some systems.
+\code{tools::R_user_dir("crew.cluster", which = "cache")}
+is another reasonable choice.}
+
+\item{script_lines}{Optional character vector of additional lines to be
+added to the job script just after the more common flags.
+An example would be \code{script_lines = "module load R"} if your cluster
+supports R through an environment module.}
 
 \item{sge_cwd}{Logical of length 1, whether to
 launch the worker from the current working directory (as opposed to
@@ -119,23 +145,29 @@ variables of the current session to the SGE worker. \code{sge_envvars = TRUE}
 translates to a line of \verb{#$ -V} in the SGE job script.
 \code{sge_envvars = FALSE} omits this line.}
 
-\item{sge_log_files}{Character of length 1, file or directory path to SGE
-worker log files. \code{sge_log_files = "VALUE"} translates to a line of
+\item{sge_log_output}{Character of length 1, file or directory path to SGE
+worker log files for standard output.
+\code{sge_log_output = "VALUE"} translates to a line of
 \verb{#$ -o VALUE} in the SGE job script. The default is \verb{/dev/null} to omit
-the logs. If you do supply a value, it is recommended to supply a
+the logs. If you do supply a non-\verb{/dev/null} value,
+it is recommended to supply a
+directory path with a trailing slash so that each worker gets its own set
+of log files.}
+
+\item{sge_log_error}{Character of length 1, file or directory path to SGE
+worker log files for standard error.
+\code{sge_log_error = "VALUE"} translates to a line of
+\verb{#$ -e VALUE} in the SGE job script.
+The default of \code{NULL} omits this line.
+If you do supply a non-\verb{/dev/null} value, it is recommended to supply a
 directory path with a trailing slash so that each worker gets its own set
 of log files.}
 
 \item{sge_log_join}{Logical, whether to join the stdout and stderr log
 files together into one file. \code{sge_log_join = TRUE} translates to a line
-of \verb{#$ -j y} in the SGE job script. \code{sge_log_join = FALSE} is equivalent
-to \verb{#$ -j n}.}
-
-\item{sge_memory_gigabytes_required}{Optional positive numeric of length 1
-with the gigabytes of memory required to run the worker.
-\code{sge_memory_gigabytes_required = 2.4}
-translates to a line of \verb{#$ -l m_mem_free=2.4G} in the SGE job script.
-\code{sge_memory_gigabytes_required = NULL} omits this line.}
+of \verb{#$ -j y} in the SGE job script, while \code{sge_log_join = FALSE} is
+equivalent to \verb{#$ -j n}. If \code{sge_log_join = TRUE}, then \code{sge_log_error}
+should be \code{NULL}.}
 
 \item{sge_memory_gigabytes_limit}{Optional numeric of length 1
 with the maximum number of gigabytes of memory a worker is allowed to
@@ -143,6 +175,12 @@ consume. If the worker consumes more than this level of memory, then
 SGE will terminate it. \verb{sge_memory_gigabytes_limit = 5.7"}
 translates to a line of \code{"#$ -l h_rss=5.7G"} in the SGE job script.
 \code{sge_memory_gigabytes_limit = NULL} omits this line.}
+
+\item{sge_memory_gigabytes_required}{Optional positive numeric of length 1
+with the gigabytes of memory required to run the worker.
+\code{sge_memory_gigabytes_required = 2.4}
+translates to a line of \verb{#$ -l m_mem_free=2.4G} in the SGE job script.
+\code{sge_memory_gigabytes_required = NULL} omits this line.}
 
 \item{sge_cores}{Optional positive integer of length 1,
 number of cores per worker ("slots" in SGE lingo).
@@ -153,38 +191,23 @@ to a line of \verb{#$ -pe smp 4} in the SGE job script.
 \item{sge_gpu}{Optional integer of length 1 with the number of GPUs to
 request for the worker. \code{sge_gpu = 1} translates to a line of
 \code{"#$ -l gpu=1"} in the SGE job script. \code{sge_gpu = NULL} omits this line.}
-
-\item{sge_lines}{Optional character vector of additional lines to be
-added to the SGE job script just after the more common flags.
-An example would be \code{sge_lines = "module load R"} if your SGE cluster
-supports R through an environment module.}
-
-\item{auto_scale}{Character of length 1, name of the method for
-automatically scaling workers to meet demand. \code{NULL} to default to
-\code{"demand"}. Possible values include the following:
-\itemize{
-\item \code{"demand"}: just after pushing a new task in \code{push()}, launch
-\code{min(n, max(0, t - w))} workers, where \code{n} is the maximum number of
-workers, \code{t} is the number of queued tasks, and \code{w} is the current
-number of workers already running. In other words, scale up the
-number of workers to meet the current demand.
-If you trust tasks not to crash workers, this is a good choice.
-But if you think a task may always crash a worker
-(e.g. segmentation fault or maxed out memory) then
-this could be somewhat risky because \code{mirai} resubmits
-failed tasks behind the scenes and \code{crew} responds by
-re-launching workers. If you are worried about this scenario,
-choose \code{auto_scale = "one"} instead, which will only launch
-up to one worker whenever a task is pushed.
-\item \code{"one"}: just after pushing a new task in \code{push()}, launch
-a one worker if demand \code{min(n, max(0, t - w))} is greater than 0.
-\item \code{"none"}: do not auto-scale at all.
-}}
 }
 \description{
 Create an \code{R6} object to submit tasks and
 launch workers on Sun Grid Engine (SGE) workers.
 }
+\section{Attribution}{
+
+The template files at
+\url{https://github.com/mschubert/clustermq/tree/master/inst}
+informed the development of the \code{crew} launcher plugins in
+\code{crew.cluster}, and we would like to thank
+Michael Schubert for developing \code{clustermq} and releasing it under
+the permissive Apache License 2.0.
+See the \code{NOTICE} and \code{README.md} files in the \code{crew.cluster}
+source code for additional attribution.
+}
+
 \examples{
 if (identical(Sys.getenv("CREW_EXAMPLES"), "true")) {
 controller <- crew_controller_sge()
@@ -194,5 +217,11 @@ controller$wait()
 controller$pop()$result
 controller$terminate()
 }
+}
+\seealso{
+Other controllers: 
+\code{\link{crew_controller_lsf}()},
+\code{\link{crew_controller_pbs}()},
+\code{\link{crew_controller_slurm}()}
 }
 \concept{controllers}

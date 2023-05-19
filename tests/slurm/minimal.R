@@ -1,9 +1,8 @@
 library(crew.cluster)
 library(testthat)
-controller <- crew_controller_sge(
+controller <- crew_controller_slurm(
   name = "my_workflow",
   workers = 1L,
-  seconds_launch = 720,
   seconds_idle = 300,
   script_lines = paste0("module load R/", getRversion()),
   verbose = TRUE

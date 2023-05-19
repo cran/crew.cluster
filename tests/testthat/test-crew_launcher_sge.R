@@ -5,15 +5,16 @@ test_that("valid simple crew_launcher_sge()", {
 test_that("valid populated crew_launcher_sge()", {
   expect_silent(
     crew_launcher_sge(
+      script_lines = c("module load R", "echo 'start'"),
       sge_cwd = TRUE,
       sge_envvars = TRUE,
-      sge_log_files = "log",
-      sge_log_join = TRUE,
+      sge_log_output = "out",
+      sge_log_error = "err",
+      sge_log_join = FALSE,
       sge_memory_gigabytes_required = 2,
       sge_memory_gigabytes_limit = 8,
       sge_cores = 2L,
-      sge_gpu = 1L,
-      sge_lines = c("module load R", "echo 'start'")
+      sge_gpu = 1L
     )
   )
 })
@@ -24,7 +25,8 @@ test_that("invalid crew_launcher_sge(): SGE field", {
   expect_error(x$validate(), class = "crew_error")
 })
 
-test_that("invalid crew_launcher_sge(): nonSGE field", {
+test_that("invalid crew_launcher_sge(): non-SGE field", {
+  skip("TODO: add back full validation when the next {crew} is released.")
   x <- crew_launcher_sge()
   x$name <- - 1L
   expect_error(x$validate(), class = "crew_error")
@@ -34,34 +36,40 @@ test_that("crew_launcher_sge() script() nearly empty", {
   x <- crew_launcher_sge(
     sge_cwd = FALSE,
     sge_envvars = FALSE,
-    sge_log_files = "log_file",
+    sge_log_output = "log_file",
     sge_log_join = FALSE
   )
-  expect_equal(x$script(), c("#$ -o log_file", "#$ -j n"))
+  expect_equal(
+    x$script(name = "my_job"),
+    c("#$ -N my_job", "#$ -o log_file", "#$ -j n")
+  )
 })
 
 test_that("crew_launcher_sge() script() all lines", {
   x <- crew_launcher_sge(
+    script_lines = c("module load R", "echo 'start'"),
     sge_cwd = TRUE,
     sge_envvars = TRUE,
-    sge_log_files = "log_dir/",
-    sge_log_join = TRUE,
+    sge_log_output = "out_dir/",
+    sge_log_error = "err_dir/",
+    sge_log_join = FALSE,
     sge_memory_gigabytes_required = 2,
     sge_memory_gigabytes_limit = 8.4,
     sge_cores = 2L,
-    sge_gpu = 1L,
-    sge_lines = c("module load R", "echo 'start'")
+    sge_gpu = 1L
   )
-  out <- x$script()
+  out <- x$script(name = "this_job")
   exp <- c(
+    "#$ -N this_job",
     "#$ -cwd",
     "#$ -V",
-    "#$ -o log_dir/",
-    "#$ -j y",
-    "$# -l m_mem_free=2G",
-    "$# -l h_rss=8.4G",
-    "$# -pe smp 2",
-    "$# -l gpu=1",
+    "#$ -o out_dir/",
+    "#$ -e err_dir/",
+    "#$ -j n",
+    "#$ -l h_rss=8.4G",
+    "#$ -l m_mem_free=2G",
+    "#$ -pe smp 2",
+    "#$ -l gpu=1",
     "module load R",
     "echo 'start'"
   )

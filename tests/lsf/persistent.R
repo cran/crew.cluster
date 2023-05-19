@@ -1,6 +1,6 @@
 library(crew.cluster)
 library(testthat)
-x <- crew_controller_sge(
+x <- crew_controller_lsf(
   name = "123",
   workers = 1L,
   seconds_idle = 300,

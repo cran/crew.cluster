@@ -95,7 +95,7 @@ CloudWatch
 MERCHANTABILITY
 NONINFRINGEMENT
 Tidyselect
-Bischel
+Bischl
 Surmann
 Kubernetes
 namespaced
@@ -103,3 +103,4 @@ unencrypted
 GPU
 stderr
 stdout
+LSF

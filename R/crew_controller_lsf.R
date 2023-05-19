@@ -1,23 +1,27 @@
-#' @title `r lifecycle::badge("maturing")` Create a controller with a
-#'   Sun Grid Engine (SGE) launcher.
+#' @title `r lifecycle::badge("experimental")` Create a controller with a
+#'   LSF launcher.
 #' @export
 #' @family controllers
 #' @description Create an `R6` object to submit tasks and
-#'   launch workers on Sun Grid Engine (SGE) workers.
+#'   launch workers on LSF workers.
+#' @details WARNING: the `crew.cluster` LSF plugin is experimental
+#'   and has not actually been tested on a LSF cluster. Please proceed
+#'   with caution and report bugs to
+#'   <https://github.com/wlandau/crew.cluster>.
 #' @inheritSection crew.cluster-package Attribution
 #' @inheritParams crew::crew_router
-#' @inheritParams crew_launcher_sge
+#' @inheritParams crew_launcher_lsf
 #' @inheritParams crew::crew_controller
 #' @examples
 #' if (identical(Sys.getenv("CREW_EXAMPLES"), "true")) {
-#' controller <- crew_controller_sge()
+#' controller <- crew_controller_lsf()
 #' controller$start()
 #' controller$push(name = "task", command = sqrt(4))
 #' controller$wait()
 #' controller$pop()$result
 #' controller$terminate()
 #' }
-crew_controller_sge <- function(
+crew_controller_lsf <- function(
   name = NULL,
   workers = 1L,
   host = NULL,
@@ -35,19 +39,16 @@ crew_controller_sge <- function(
   reset_options = FALSE,
   garbage_collection = FALSE,
   verbose = FALSE,
-  command_submit = as.character(Sys.which("qsub")),
-  command_delete = as.character(Sys.which("qdel")),
+  command_submit = as.character(Sys.which("bsub")),
+  command_delete = as.character(Sys.which("bkill")),
   script_directory = tempdir(),
   script_lines = character(0L),
-  sge_cwd = TRUE,
-  sge_envvars = FALSE,
-  sge_log_output = "/dev/null",
-  sge_log_error = NULL,
-  sge_log_join = TRUE,
-  sge_memory_gigabytes_limit = NULL,
-  sge_memory_gigabytes_required = NULL,
-  sge_cores = NULL,
-  sge_gpu = NULL
+  lsf_cwd = getwd(),
+  lsf_log_output = "/dev/null",
+  lsf_log_error = "/dev/null",
+  lsf_memory_gigabytes_limit = NULL,
+  lsf_memory_gigabytes_required = NULL,
+  lsf_cores = NULL
 ) {
   router <- crew::crew_router(
     name = name,
@@ -57,7 +58,7 @@ crew_controller_sge <- function(
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout
   )
-  launcher <- crew_launcher_sge(
+  launcher <- crew_launcher_lsf(
     name = name,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
@@ -74,15 +75,12 @@ crew_controller_sge <- function(
     command_delete = command_delete,
     script_directory = script_directory,
     script_lines = script_lines,
-    sge_cwd = sge_cwd,
-    sge_envvars = sge_envvars,
-    sge_log_output = sge_log_output,
-    sge_log_error = sge_log_error,
-    sge_log_join = sge_log_join,
-    sge_memory_gigabytes_limit = sge_memory_gigabytes_limit,
-    sge_memory_gigabytes_required = sge_memory_gigabytes_required,
-    sge_cores = sge_cores,
-    sge_gpu = sge_gpu
+    lsf_cwd = lsf_cwd,
+    lsf_log_output = lsf_log_output,
+    lsf_log_error = lsf_log_error,
+    lsf_memory_gigabytes_limit = lsf_memory_gigabytes_limit,
+    lsf_memory_gigabytes_required = lsf_memory_gigabytes_required,
+    lsf_cores = lsf_cores
   )
   controller <- crew::crew_controller(router = router, launcher = launcher)
   controller$validate()
