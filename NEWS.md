@@ -1,3 +1,8 @@
+# crew.cluster 0.1.1
+
+* Align with breaking changes in `crew` 0.3.0.
+* Increase `seconds_launch` to 86400 (1 day).
+
 # crew.cluster 0.1.0
 
 * Submit workers asynchronously (#2).

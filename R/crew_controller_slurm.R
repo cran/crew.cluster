@@ -9,7 +9,7 @@
 #'   with caution and report bugs to
 #'   <https://github.com/wlandau/crew.cluster>.
 #' @inheritSection crew.cluster-package Attribution
-#' @inheritParams crew::crew_router
+#' @inheritParams crew::crew_client
 #' @inheritParams crew_launcher_slurm
 #' @inheritParams crew::crew_controller
 #' @examples
@@ -28,7 +28,7 @@ crew_controller_slurm <- function(
   port = NULL,
   seconds_interval = 0.25,
   seconds_timeout = 10,
-  seconds_launch = 60,
+  seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
   seconds_exit = 1,
@@ -48,7 +48,8 @@ crew_controller_slurm <- function(
   slurm_memory_gigabytes_per_cpu = NULL,
   slurm_cpus_per_task = NULL
 ) {
-  router <- crew::crew_router(
+  # TODO: remove eval parse after next crew release.
+  client <- eval(parse(text = "crew::crew_client"))(
     name = name,
     workers = workers,
     host = host,
@@ -58,6 +59,7 @@ crew_controller_slurm <- function(
   )
   launcher <- crew_launcher_slurm(
     name = name,
+    seconds_interval = seconds_interval,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,
@@ -78,7 +80,7 @@ crew_controller_slurm <- function(
     slurm_memory_gigabytes_per_cpu = slurm_memory_gigabytes_per_cpu,
     slurm_cpus_per_task = slurm_cpus_per_task
   )
-  controller <- crew::crew_controller(router = router, launcher = launcher)
+  controller <- crew::crew_controller(client = client, launcher = launcher)
   controller$validate()
   controller
 }
