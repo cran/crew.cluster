@@ -62,6 +62,8 @@ Other launchers:
 \item{\code{slurm_memory_gigabytes_per_cpu}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 
 \item{\code{slurm_cpus_per_task}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
+
+\item{\code{slurm_time_minutes}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -86,6 +88,7 @@ Other launchers:
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="scale"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-scale'><code>crew::crew_class_launcher$scale()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="settings"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-settings'><code>crew::crew_class_launcher$settings()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="start"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-start'><code>crew::crew_class_launcher$start()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="summary"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-summary'><code>crew::crew_class_launcher$summary()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="tally"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-tally'><code>crew::crew_class_launcher$tally()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="terminate"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-terminate'><code>crew::crew_class_launcher$terminate()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="throttle"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-throttle'><code>crew::crew_class_launcher$throttle()</code></a></span></li>
@@ -115,6 +118,8 @@ SLURM launcher constructor.
   reset_packages = NULL,
   reset_options = NULL,
   garbage_collection = NULL,
+  launch_max = NULL,
+  tls = NULL,
   verbose = NULL,
   command_submit = NULL,
   command_delete = NULL,
@@ -123,7 +128,8 @@ SLURM launcher constructor.
   slurm_log_output = NULL,
   slurm_log_error = NULL,
   slurm_memory_gigabytes_per_cpu = NULL,
-  slurm_cpus_per_task = NULL
+  slurm_cpus_per_task = NULL,
+  slurm_time_minutes = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -154,6 +160,10 @@ SLURM launcher constructor.
 
 \item{\code{garbage_collection}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 
+\item{\code{launch_max}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
+
+\item{\code{tls}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
+
 \item{\code{verbose}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 
 \item{\code{command_submit}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
@@ -171,6 +181,8 @@ SLURM launcher constructor.
 \item{\code{slurm_memory_gigabytes_per_cpu}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 
 \item{\code{slurm_cpus_per_task}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
+
+\item{\code{slurm_time_minutes}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
 }
 \if{html}{\out{</div>}}
 }

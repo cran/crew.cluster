@@ -18,6 +18,8 @@ crew_launcher_slurm(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
+  launch_max = 5L,
+  tls = crew::crew_tls(),
   verbose = FALSE,
   command_submit = as.character(Sys.which("sbatch")),
   command_delete = as.character(Sys.which("scancel")),
@@ -26,7 +28,8 @@ crew_launcher_slurm(
   slurm_log_output = "/dev/null",
   slurm_log_error = "/dev/null",
   slurm_memory_gigabytes_per_cpu = NULL,
-  slurm_cpus_per_task = NULL
+  slurm_cpus_per_task = NULL,
+  slurm_time_minutes = 1440
 )
 }
 \arguments{
@@ -44,7 +47,7 @@ considered alive if it is actively connected to its assign websocket.}
 since the completion of the last task. If exceeded, the worker exits.
 But the timer does not launch until \code{tasks_timers} tasks
 have completed.
-See the \code{idletime} argument of \code{mirai::server()}. \code{crew} does not
+See the \code{idletime} argument of \code{mirai::daemon()}. \code{crew} does not
 excel with perfectly transient workers because it does not micromanage
 the assignment of tasks to workers, so please allow enough idle
 time for a new worker to be delegated a new task.}
@@ -52,15 +55,15 @@ time for a new worker to be delegated a new task.}
 \item{seconds_wall}{Soft wall time in seconds.
 The timer does not launch until \code{tasks_timers} tasks
 have completed.
-See the \code{walltime} argument of \code{mirai::server()}.}
+See the \code{walltime} argument of \code{mirai::daemon()}.}
 
 \item{seconds_exit}{Number of seconds to wait for NNG websockets
 to finish sending large data (when a worker exits after reaching a
 timeout or having completed a certain number of tasks).
-See the \code{exitlinger} argument of \code{mirai::server()}.}
+See the \code{exitlinger} argument of \code{mirai::daemon()}.}
 
 \item{tasks_max}{Maximum number of tasks that a worker will do before
-exiting. See the \code{maxtasks} argument of \code{mirai::server()}.
+exiting. See the \code{maxtasks} argument of \code{mirai::daemon()}.
 \code{crew} does not
 excel with perfectly transient workers because it does not micromanage
 the assignment of tasks to workers, it is recommended to set
@@ -68,7 +71,7 @@ the assignment of tasks to workers, it is recommended to set
 
 \item{tasks_timers}{Number of tasks to do before activating
 the timers for \code{seconds_idle} and \code{seconds_wall}.
-See the \code{timerstart} argument of \code{mirai::server()}.}
+See the \code{timerstart} argument of \code{mirai::daemon()}.}
 
 \item{reset_globals}{\code{TRUE} to reset global environment
 variables between tasks, \code{FALSE} to leave them alone.}
@@ -83,6 +86,18 @@ because packages sometimes rely on options they set at loading time.}
 
 \item{garbage_collection}{\code{TRUE} to run garbage collection between
 tasks, \code{FALSE} to skip.}
+
+\item{launch_max}{Positive integer of length 1, maximum allowed
+consecutive launch attempts which do not complete any tasks.
+Enforced on a worker-by-worker basis.
+The futile launch count resets to back 0
+for each worker that completes a task.
+It is recommended to set \code{launch_max} above 0
+because sometimes workers are unproductive under perfectly ordinary
+circumstances. But \code{launch_max} should still be small enough
+to detect errors in the underlying platform.}
+
+\item{tls}{A TLS configuration object from \code{\link[crew:crew_tls]{crew_tls()}}.}
 
 \item{verbose}{Logical, whether to see console output and error messages
 when submitting worker.}
@@ -131,8 +146,8 @@ Set \code{slurm_log_error = NULL} to omit this line from the job script.}
 
 \item{slurm_memory_gigabytes_per_cpu}{Positive numeric of length 1
 with the gigabytes of memory required per CPU.
-\code{slurm_memory_gigabytes_per_cpu = 2.4}
-translates to a line of \verb{#SBATCH --mem-per-cpu=2.4G}
+\code{slurm_memory_gigabytes_per_cpu = 2.40123}
+translates to a line of \verb{#SBATCH --mem-per-cpu=2041M}
 in the SLURM job script.
 \code{slurm_memory_gigabytes_per_cpu = NULL} omits this line.}
 
@@ -141,6 +156,12 @@ number of CPUs for the worker.
 \code{slurm_cpus_per_task = 4} translates
 to a line of \verb{#SBATCH --cpus-per-task=4} in the SLURM job script.
 \code{slurm_cpus_per_task = NULL} omits this line.}
+
+\item{slurm_time_minutes}{Numeric of length 1, number of minutes to
+designate as the wall time of \code{crew} each worker instance on the
+SLURM cluster. \code{slurm_time_minutes = 60} translates to a line of
+\verb{#SBATCH --time=60} in the SLURM job script. \code{slurm_time_minutes = NULL}
+omits this line.}
 }
 \description{
 Create an \code{R6} object to launch and maintain

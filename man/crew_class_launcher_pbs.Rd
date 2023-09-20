@@ -90,6 +90,7 @@ Other launchers:
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="scale"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-scale'><code>crew::crew_class_launcher$scale()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="settings"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-settings'><code>crew::crew_class_launcher$settings()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="start"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-start'><code>crew::crew_class_launcher$start()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="summary"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-summary'><code>crew::crew_class_launcher$summary()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="tally"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-tally'><code>crew::crew_class_launcher$tally()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="terminate"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-terminate'><code>crew::crew_class_launcher$terminate()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="throttle"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-throttle'><code>crew::crew_class_launcher$throttle()</code></a></span></li>
@@ -120,6 +121,8 @@ PBS/TORQUE launcher constructor.
   reset_packages = NULL,
   reset_options = NULL,
   garbage_collection = NULL,
+  launch_max = NULL,
+  tls = NULL,
   verbose = NULL,
   command_submit = NULL,
   command_delete = NULL,
@@ -161,6 +164,10 @@ PBS/TORQUE launcher constructor.
 \item{\code{reset_options}}{See \code{\link[=crew_launcher_pbs]{crew_launcher_pbs()}}.}
 
 \item{\code{garbage_collection}}{See \code{\link[=crew_launcher_pbs]{crew_launcher_pbs()}}.}
+
+\item{\code{launch_max}}{See \code{\link[=crew_launcher_pbs]{crew_launcher_pbs()}}.}
+
+\item{\code{tls}}{See \code{\link[=crew_launcher_pbs]{crew_launcher_pbs()}}.}
 
 \item{\code{verbose}}{See \code{\link[=crew_launcher_pbs]{crew_launcher_pbs()}}.}
 

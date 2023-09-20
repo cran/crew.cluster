@@ -26,6 +26,9 @@ crew_controller_slurm <- function(
   workers = 1L,
   host = NULL,
   port = NULL,
+  tls = crew::crew_tls(),
+  tls_enable = NULL,
+  tls_config = NULL,
   seconds_interval = 0.25,
   seconds_timeout = 10,
   seconds_launch = 86400,
@@ -38,6 +41,7 @@ crew_controller_slurm <- function(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
+  launch_max = 5L,
   verbose = FALSE,
   command_submit = as.character(Sys.which("sbatch")),
   command_delete = as.character(Sys.which("scancel")),
@@ -46,14 +50,17 @@ crew_controller_slurm <- function(
   slurm_log_output = "/dev/null",
   slurm_log_error = "/dev/null",
   slurm_memory_gigabytes_per_cpu = NULL,
-  slurm_cpus_per_task = NULL
+  slurm_cpus_per_task = NULL,
+  slurm_time_minutes = 1440
 ) {
-  # TODO: remove eval parse after next crew release.
-  client <- eval(parse(text = "crew::crew_client"))(
+  client <- crew::crew_client(
     name = name,
     workers = workers,
     host = host,
     port = port,
+    tls = tls,
+    tls_enable = tls_enable,
+    tls_config = tls_config,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout
   )
@@ -70,6 +77,8 @@ crew_controller_slurm <- function(
     reset_packages = reset_packages,
     reset_options = reset_options,
     garbage_collection = garbage_collection,
+    launch_max = launch_max,
+    tls = tls,
     verbose = verbose,
     command_submit = command_submit,
     command_delete = command_delete,
@@ -78,7 +87,8 @@ crew_controller_slurm <- function(
     slurm_log_output = slurm_log_output,
     slurm_log_error = slurm_log_error,
     slurm_memory_gigabytes_per_cpu = slurm_memory_gigabytes_per_cpu,
-    slurm_cpus_per_task = slurm_cpus_per_task
+    slurm_cpus_per_task = slurm_cpus_per_task,
+    slurm_time_minutes = slurm_time_minutes
   )
   controller <- crew::crew_controller(client = client, launcher = launcher)
   controller$validate()
