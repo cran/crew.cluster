@@ -11,7 +11,6 @@ crew_launcher_cluster(
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
-  seconds_exit = 1,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
@@ -19,7 +18,7 @@ crew_launcher_cluster(
   reset_options = FALSE,
   garbage_collection = FALSE,
   launch_max = 5L,
-  tls = crew::crew_tls(),
+  tls = crew::crew_tls(mode = "automatic"),
   verbose = FALSE,
   command_submit = "",
   command_delete = "",
@@ -30,7 +29,8 @@ crew_launcher_cluster(
 \arguments{
 \item{name}{Name of the launcher.}
 
-\item{seconds_interval}{Seconds to wait between asynchronous operations.}
+\item{seconds_interval}{Deprecated in version 0.5.0.9003 (2023-10-02)
+no longer used.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -51,11 +51,6 @@ time for a new worker to be delegated a new task.}
 The timer does not launch until \code{tasks_timers} tasks
 have completed.
 See the \code{walltime} argument of \code{mirai::daemon()}.}
-
-\item{seconds_exit}{Number of seconds to wait for NNG websockets
-to finish sending large data (when a worker exits after reaching a
-timeout or having completed a certain number of tasks).
-See the \code{exitlinger} argument of \code{mirai::daemon()}.}
 
 \item{tasks_max}{Maximum number of tasks that a worker will do before
 exiting. See the \code{maxtasks} argument of \code{mirai::daemon()}.

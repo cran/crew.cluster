@@ -49,13 +49,17 @@
 #'   SLURM cluster. `slurm_time_minutes = 60` translates to a line of
 #'   `#SBATCH --time=60` in the SLURM job script. `slurm_time_minutes = NULL`
 #'   omits this line.
+#' @param slurm_partition Character of length 1, name of the SLURM partition to
+#'   create workers on. `slurm_partition = "partition1,partition2"`
+#'   translates to a line of `#SBATCH --partition=partition1,partition2`
+#'   in the SLURM job script. `slurm_partition = NULL`
+#'   omits this line.
 crew_launcher_slurm <- function(
   name = NULL,
-  seconds_interval = 0.25,
+  seconds_interval = NULL,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
-  seconds_exit = 1,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
@@ -63,7 +67,7 @@ crew_launcher_slurm <- function(
   reset_options = FALSE,
   garbage_collection = FALSE,
   launch_max = 5L,
-  tls = crew::crew_tls(),
+  tls = crew::crew_tls(mode = "automatic"),
   verbose = FALSE,
   command_submit = as.character(Sys.which("sbatch")),
   command_delete = as.character(Sys.which("scancel")),
@@ -73,16 +77,24 @@ crew_launcher_slurm <- function(
   slurm_log_error = "/dev/null",
   slurm_memory_gigabytes_per_cpu = NULL,
   slurm_cpus_per_task = NULL,
-  slurm_time_minutes = 1440
+  slurm_time_minutes = 1440,
+  slurm_partition = NULL
 ) {
+  crew_deprecate(
+    name = "seconds_interval",
+    date = "2023-10-02",
+    version = "0.5.0.9003",
+    alternative = "none (no longer necessary)",
+    condition = "message",
+    value = seconds_interval,
+    frequency = "once"
+  )
   name <- as.character(name %|||% crew::crew_random_name())
   launcher <- crew_class_launcher_slurm$new(
     name = name,
-    seconds_interval = seconds_interval,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,
-    seconds_exit = seconds_exit,
     tasks_max = tasks_max,
     tasks_timers = tasks_timers,
     reset_globals = reset_globals,
@@ -100,7 +112,8 @@ crew_launcher_slurm <- function(
     slurm_log_error = slurm_log_error,
     slurm_memory_gigabytes_per_cpu = slurm_memory_gigabytes_per_cpu,
     slurm_cpus_per_task = slurm_cpus_per_task,
-    slurm_time_minutes = slurm_time_minutes
+    slurm_time_minutes = slurm_time_minutes,
+    slurm_partition = slurm_partition
   )
   launcher$validate()
   launcher
@@ -127,14 +140,14 @@ crew_class_launcher_slurm <- R6::R6Class(
     slurm_cpus_per_task = NULL,
     #' @field slurm_time_minutes See [crew_launcher_slurm()].
     slurm_time_minutes = NULL,
+    #' @field slurm_partition See See [crew_launcher_slurm()].
+    slurm_partition = NULL,
     #' @description SLURM launcher constructor.
     #' @return an SLURM launcher object.
     #' @param name See [crew_launcher_slurm()].
-    #' @param seconds_interval See [crew_launcher_slurm()].
     #' @param seconds_launch See [crew_launcher_slurm()].
     #' @param seconds_idle See [crew_launcher_slurm()].
     #' @param seconds_wall See [crew_launcher_slurm()].
-    #' @param seconds_exit See [crew_launcher_slurm()].
     #' @param tasks_max See [crew_launcher_slurm()].
     #' @param tasks_timers See [crew_launcher_slurm()].
     #' @param reset_globals See [crew_launcher_slurm()].
@@ -153,13 +166,12 @@ crew_class_launcher_slurm <- R6::R6Class(
     #' @param slurm_memory_gigabytes_per_cpu See [crew_launcher_slurm()].
     #' @param slurm_cpus_per_task See [crew_launcher_slurm()].
     #' @param slurm_time_minutes See [crew_launcher_slurm()].
+    #' @param slurm_partition See [crew_launcher_slurm()].
     initialize = function(
       name = NULL,
-      seconds_interval = NULL,
       seconds_launch = NULL,
       seconds_idle = NULL,
       seconds_wall = NULL,
-      seconds_exit = NULL,
       tasks_max = NULL,
       tasks_timers = NULL,
       reset_globals = NULL,
@@ -177,15 +189,14 @@ crew_class_launcher_slurm <- R6::R6Class(
       slurm_log_error = NULL,
       slurm_memory_gigabytes_per_cpu = NULL,
       slurm_cpus_per_task = NULL,
-      slurm_time_minutes = NULL
+      slurm_time_minutes = NULL,
+      slurm_partition = NULL
     ) {
       super$initialize(
         name = name,
-        seconds_interval = seconds_interval,
         seconds_launch = seconds_launch,
         seconds_idle = seconds_idle,
         seconds_wall = seconds_wall,
-        seconds_exit = seconds_exit,
         tasks_max = tasks_max,
         tasks_timers = tasks_timers,
         reset_globals = reset_globals,
@@ -205,12 +216,13 @@ crew_class_launcher_slurm <- R6::R6Class(
       self$slurm_memory_gigabytes_per_cpu <- slurm_memory_gigabytes_per_cpu
       self$slurm_cpus_per_task <- slurm_cpus_per_task
       self$slurm_time_minutes <- slurm_time_minutes
+      self$slurm_partition <- slurm_partition
     },
     #' @description Validate the launcher.
     #' @return `NULL` (invisibly). Throws an error if a field is invalid.
     validate = function() {
       super$validate()
-      fields <- c("slurm_log_output", "slurm_log_error")
+      fields <- c("slurm_log_output", "slurm_log_error", "slurm_partition")
       for (field in fields) {
         if (!is.null(self[[field]])) {
           crew::crew_assert(
@@ -298,6 +310,11 @@ crew_class_launcher_slurm <- R6::R6Class(
           is.null(self$slurm_time_minutes),
           character(0L),
           paste0("#SBATCH --time=", self$slurm_time_minutes)
+        ),
+        if_any(
+          is.null(self$slurm_partition),
+          character(0L),
+          paste0("#SBATCH --partition=", self$slurm_partition)
         ),
         self$script_lines
       )

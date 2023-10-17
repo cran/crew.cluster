@@ -7,11 +7,10 @@ SLURM workers.}
 \usage{
 crew_launcher_slurm(
   name = NULL,
-  seconds_interval = 0.25,
+  seconds_interval = NULL,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
-  seconds_exit = 1,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
@@ -19,7 +18,7 @@ crew_launcher_slurm(
   reset_options = FALSE,
   garbage_collection = FALSE,
   launch_max = 5L,
-  tls = crew::crew_tls(),
+  tls = crew::crew_tls(mode = "automatic"),
   verbose = FALSE,
   command_submit = as.character(Sys.which("sbatch")),
   command_delete = as.character(Sys.which("scancel")),
@@ -29,13 +28,15 @@ crew_launcher_slurm(
   slurm_log_error = "/dev/null",
   slurm_memory_gigabytes_per_cpu = NULL,
   slurm_cpus_per_task = NULL,
-  slurm_time_minutes = 1440
+  slurm_time_minutes = 1440,
+  slurm_partition = NULL
 )
 }
 \arguments{
 \item{name}{Name of the launcher.}
 
-\item{seconds_interval}{Seconds to wait between asynchronous operations.}
+\item{seconds_interval}{Deprecated in version 0.5.0.9003 (2023-10-02)
+no longer used.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -56,11 +57,6 @@ time for a new worker to be delegated a new task.}
 The timer does not launch until \code{tasks_timers} tasks
 have completed.
 See the \code{walltime} argument of \code{mirai::daemon()}.}
-
-\item{seconds_exit}{Number of seconds to wait for NNG websockets
-to finish sending large data (when a worker exits after reaching a
-timeout or having completed a certain number of tasks).
-See the \code{exitlinger} argument of \code{mirai::daemon()}.}
 
 \item{tasks_max}{Maximum number of tasks that a worker will do before
 exiting. See the \code{maxtasks} argument of \code{mirai::daemon()}.
@@ -161,6 +157,12 @@ to a line of \verb{#SBATCH --cpus-per-task=4} in the SLURM job script.
 designate as the wall time of \code{crew} each worker instance on the
 SLURM cluster. \code{slurm_time_minutes = 60} translates to a line of
 \verb{#SBATCH --time=60} in the SLURM job script. \code{slurm_time_minutes = NULL}
+omits this line.}
+
+\item{slurm_partition}{Character of length 1, name of the SLURM partition to
+create workers on. \code{slurm_partition = "partition1,partition2"}
+translates to a line of \verb{#SBATCH --partition=partition1,partition2}
+in the SLURM job script. \code{slurm_partition = NULL}
 omits this line.}
 }
 \description{

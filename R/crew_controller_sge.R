@@ -8,6 +8,8 @@
 #' @inheritParams crew::crew_client
 #' @inheritParams crew_launcher_sge
 #' @inheritParams crew::crew_controller
+#' @param seconds_exit Deprecated on 2023-09-21 in version 0.1.2.9000.
+#'   No longer necessary.
 #' @examples
 #' if (identical(Sys.getenv("CREW_EXAMPLES"), "true")) {
 #' controller <- crew_controller_sge()
@@ -22,7 +24,7 @@ crew_controller_sge <- function(
   workers = 1L,
   host = NULL,
   port = NULL,
-  tls = crew::crew_tls(),
+  tls = crew::crew_tls(mode = "automatic"),
   tls_enable = NULL,
   tls_config = NULL,
   seconds_interval = 0.25,
@@ -30,7 +32,7 @@ crew_controller_sge <- function(
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
-  seconds_exit = 1,
+  seconds_exit = NULL,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
@@ -53,6 +55,14 @@ crew_controller_sge <- function(
   sge_cores = NULL,
   sge_gpu = NULL
 ) {
+  if (!is.null(seconds_exit)) {
+    crew::crew_deprecate(
+      name = "seconds_exit",
+      date = "2023-09-21",
+      version = "0.5.0.9002",
+      alternative = "none (no longer necessary)"
+    )
+  }
   client <- crew::crew_client(
     name = name,
     workers = workers,
@@ -66,11 +76,9 @@ crew_controller_sge <- function(
   )
   launcher <- crew_launcher_sge(
     name = name,
-    seconds_interval = seconds_interval,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,
-    seconds_exit = seconds_exit,
     tasks_max = tasks_max,
     tasks_timers = tasks_timers,
     reset_globals = reset_globals,
