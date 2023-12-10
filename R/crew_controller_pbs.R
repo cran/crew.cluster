@@ -1,7 +1,7 @@
 #' @title `r lifecycle::badge("experimental")` Create a controller with a
 #'   PBS/TORQUE launcher.
 #' @export
-#' @family controllers
+#' @family plugin_pbs
 #' @description Create an `R6` object to submit tasks and
 #'   launch workers on a PBS or TORQUE cluster.
 #' @inheritSection crew.cluster-package Attribution
@@ -74,6 +74,8 @@ crew_controller_pbs <- function(
   )
   launcher <- crew_launcher_pbs(
     name = name,
+    seconds_interval = seconds_interval,
+    seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,

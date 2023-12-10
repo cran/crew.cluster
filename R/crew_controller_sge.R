@@ -1,7 +1,7 @@
 #' @title `r lifecycle::badge("maturing")` Create a controller with a
 #'   Sun Grid Engine (SGE) launcher.
 #' @export
-#' @family controllers
+#' @family plugin_sge
 #' @description Create an `R6` object to submit tasks and
 #'   launch workers on Sun Grid Engine (SGE) workers.
 #' @inheritSection crew.cluster-package Attribution
@@ -76,6 +76,8 @@ crew_controller_sge <- function(
   )
   launcher <- crew_launcher_sge(
     name = name,
+    seconds_interval = seconds_interval,
+    seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,

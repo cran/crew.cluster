@@ -16,15 +16,23 @@ test_that("valid populated crew_launcher_pbs()", {
   )
 })
 
+test_that("active bindings", {
+  x <- crew_launcher_pbs()
+  expect_equal(x$pbs_log_output, "/dev/null")
+  expect_null(x$pbs_log_error)
+})
+
 test_that("invalid crew_launcher_pbs(): pbs field", {
   x <- crew_launcher_pbs()
-  x$pbs_cores <- - 1L
+  private <- crew_private(x)
+  private$.pbs_cores <- - 1L
   expect_error(x$validate(), class = "crew_error")
 })
 
 test_that("invalid crew_launcher_pbs(): non-pbs field", {
+  skip_on_cran()
   x <- crew_launcher_pbs()
-  x$name <- - 1L
+  x$set_name(- 1L)
   expect_error(x$validate(), class = "crew_error")
 })
 

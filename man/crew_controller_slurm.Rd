@@ -61,12 +61,12 @@ Use argument \code{tls} instead.}
 
 \item{seconds_interval}{Number of seconds between
 polling intervals waiting for certain internal
-synchronous operations to complete. If \code{space_poll} is \code{TRUE}, then
-this is also the minimum number of seconds between calls to
-\code{mirai::daemons()} for the purposes of checking worker status.}
+synchronous operations to complete,
+such as checking \code{mirai::status()}}
 
 \item{seconds_timeout}{Number of seconds until timing
-out while waiting for certain synchronous operations to complete.}
+out while waiting for certain synchronous operations to complete,
+such as checking \code{mirai::status()}.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -229,9 +229,8 @@ controller$terminate()
 }
 }
 \seealso{
-Other controllers: 
-\code{\link{crew_controller_lsf}()},
-\code{\link{crew_controller_pbs}()},
-\code{\link{crew_controller_sge}()}
+Other plugin_slurm: 
+\code{\link{crew_class_launcher_slurm}},
+\code{\link{crew_launcher_slurm}()}
 }
-\concept{controllers}
+\concept{plugin_slurm}

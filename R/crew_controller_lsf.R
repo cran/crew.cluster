@@ -1,7 +1,7 @@
 #' @title `r lifecycle::badge("experimental")` Create a controller with a
 #'   LSF launcher.
 #' @export
-#' @family controllers
+#' @family plugin_lsf
 #' @description Create an `R6` object to submit tasks and
 #'   launch workers on LSF workers.
 #' @details WARNING: the `crew.cluster` LSF plugin is experimental
@@ -77,6 +77,8 @@ crew_controller_lsf <- function(
   )
   launcher <- crew_launcher_lsf(
     name = name,
+    seconds_interval = seconds_interval,
+    seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,

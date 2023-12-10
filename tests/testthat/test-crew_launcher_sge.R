@@ -19,15 +19,23 @@ test_that("valid populated crew_launcher_sge()", {
   )
 })
 
+test_that("active bindings", {
+  x <- crew_launcher_sge()
+  expect_equal(x$sge_log_output, "/dev/null")
+  expect_null(x$sge_log_error)
+})
+
 test_that("invalid crew_launcher_sge(): SGE field", {
   x <- crew_launcher_sge()
-  x$sge_cores <- - 1L
+  private <- crew_private(x)
+  private$.sge_cores <- - 1L
   expect_error(x$validate(), class = "crew_error")
 })
 
 test_that("invalid crew_launcher_sge(): non-SGE field", {
+  skip_on_cran()
   x <- crew_launcher_sge()
-  x$name <- - 1L
+  x$set_name(- 1L)
   expect_error(x$validate(), class = "crew_error")
 })
 

@@ -16,13 +16,15 @@ test_that("valid populated crew_launcher_slurm()", {
 
 test_that("invalid crew_launcher_slurm(): SLURM field", {
   x <- crew_launcher_slurm()
-  x$slurm_cpus_per_task <- - 1L
+  private <- crew_private(x)
+  private$.slurm_cpus_per_task <- - 1L
   expect_error(x$validate(), class = "crew_error")
 })
 
 test_that("invalid crew_launcher_slurm(): non-SLURM field", {
+  skip_on_cran()
   x <- crew_launcher_slurm()
-  x$name <- - 1L
+  x$set_name(- 1L)
   expect_error(x$validate(), class = "crew_error")
 })
 

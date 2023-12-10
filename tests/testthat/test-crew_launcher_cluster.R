@@ -3,9 +3,18 @@ test_that("valid abstract cluster launcher object", {
 })
 
 test_that("bad field in cluster launcher object", {
+  skip_on_cran()
   x <- crew_launcher_cluster()
-  x$verbose <- 2L
+  private <- crew_private(x)
+  private$.verbose <- 2L
   expect_error(x$validate(), class = "crew_error")
+})
+
+test_that("active bindings", {
+  x <- crew_launcher_cluster()
+  expect_false(x$verbose)
+  expect_equal(x$command_delete, "")
+  expect_equal(x$script_lines, character(0L))
 })
 
 test_that("SGE subclass mock job creates a tempdir() job script", {
@@ -39,7 +48,8 @@ test_that("SGE subclass mock job creates a tempdir() job script", {
     worker = 1L,
     instance = "instance"
   )
-  x$workers$handle[[1L]] <- handle
+  private <- crew_private(x)
+  private$.workers$handle[[1L]] <- handle
   expect_false(is.null(x$prefix))
   script <- path_script(
     dir = tempdir(),
@@ -103,7 +113,8 @@ test_that("SGE subclass mock job creates a custom job script", {
     worker = 1L,
     instance = "instance"
   )
-  x$workers$handle[[1L]] <- handle
+  private <- crew_private(x)
+  private$.workers$handle[[1L]] <- handle
   expect_false(is.null(x$prefix))
   script <- path_script(
     dir = dir,

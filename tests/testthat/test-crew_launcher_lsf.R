@@ -18,13 +18,15 @@ test_that("valid populated crew_launcher_lsf()", {
 
 test_that("invalid crew_launcher_lsf(): lsf field", {
   x <- crew_launcher_lsf()
-  x$lsf_cores <- - 1L
+  private <- crew_private(x)
+  private$.lsf_cores <- - 1L
   expect_error(x$validate(), class = "crew_error")
 })
 
 test_that("invalid crew_launcher_lsf(): non-lsf field", {
+  skip_on_cran()
   x <- crew_launcher_lsf()
-  x$name <- - 1L
+  x$set_name(- 1L)
   expect_error(x$validate(), class = "crew_error")
 })
 

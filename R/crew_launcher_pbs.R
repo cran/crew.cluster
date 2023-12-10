@@ -1,7 +1,7 @@
 #' @title `r lifecycle::badge("experimental")` Create a launcher with
 #'   PBS or TORQUE workers.
 #' @export
-#' @family launchers
+#' @family plugin_pbs
 #' @description Create an `R6` object to launch and maintain
 #'   workers as jobs on a PBS or TORQUE cluster.
 #' @details WARNING: the `crew.cluster` PBS plugin is experimental
@@ -62,7 +62,8 @@
 #'   `pbs_walltime_hours = NULL` omits this line.
 crew_launcher_pbs <- function(
   name = NULL,
-  seconds_interval = NULL,
+  seconds_interval = 0.5,
+  seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
@@ -87,18 +88,11 @@ crew_launcher_pbs <- function(
   pbs_cores = NULL,
   pbs_walltime_hours = 12
 ) {
-  crew_deprecate(
-    name = "seconds_interval",
-    date = "2023-10-02",
-    version = "0.5.0.9003",
-    alternative = "none (no longer necessary)",
-    condition = "message",
-    value = seconds_interval,
-    frequency = "once"
-  )
   name <- as.character(name %|||% crew::crew_random_name())
   launcher <- crew_class_launcher_pbs$new(
     name = name,
+    seconds_interval = seconds_interval,
+    seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
     seconds_idle = seconds_idle,
     seconds_wall = seconds_wall,
@@ -129,7 +123,7 @@ crew_launcher_pbs <- function(
 
 #' @title `r lifecycle::badge("maturing")` PBS/TORQUE launcher class
 #' @export
-#' @family launchers
+#' @family plugin_pbs
 #' @description `R6` class to launch and manage PBS/TORQUE workers.
 #' @details See [crew_launcher_pbs()].
 #' @inheritSection crew.cluster-package Attribution
@@ -137,24 +131,51 @@ crew_class_launcher_pbs <- R6::R6Class(
   classname = "crew_class_launcher_pbs",
   inherit = crew_class_launcher_cluster,
   cloneable = FALSE,
-  public = list(
+  private = list(
+    .pbs_cwd = NULL,
+    .pbs_log_output = NULL,
+    .pbs_log_error = NULL,
+    .pbs_log_join = NULL,
+    .pbs_memory_gigabytes_required = NULL,
+    .pbs_cores = NULL,
+    .pbs_walltime_hours = NULL
+  ),
+  active = list(
     #' @field pbs_cwd See [crew_launcher_pbs()].
-    pbs_cwd = NULL,
+    pbs_cwd = function() {
+      .subset2(private, ".pbs_cwd")
+    },
     #' @field pbs_log_output See [crew_launcher_pbs()].
-    pbs_log_output = NULL,
+    pbs_log_output = function() {
+      .subset2(private, ".pbs_log_output")
+    },
     #' @field pbs_log_error See [crew_launcher_pbs()].
-    pbs_log_error = NULL,
+    pbs_log_error = function() {
+      .subset2(private, ".pbs_log_error")
+    },
     #' @field pbs_log_join See [crew_launcher_pbs()].
-    pbs_log_join = NULL,
+    pbs_log_join = function() {
+      .subset2(private, ".pbs_log_join")
+    },
     #' @field pbs_memory_gigabytes_required See [crew_launcher_pbs()].
-    pbs_memory_gigabytes_required = NULL,
+    pbs_memory_gigabytes_required = function() {
+      .subset2(private, ".pbs_memory_gigabytes_required")
+    },
     #' @field pbs_cores See [crew_launcher_pbs()].
-    pbs_cores = NULL,
+    pbs_cores = function() {
+      .subset2(private, ".pbs_cores")
+    },
     #' @field pbs_walltime_hours See [crew_launcher_pbs()].
-    pbs_walltime_hours = NULL,
+    pbs_walltime_hours = function() {
+      .subset2(private, ".pbs_walltime_hours")
+    }
+  ),
+  public = list(
     #' @description PBS/TORQUE launcher constructor.
     #' @return an PBS/TORQUE launcher object.
     #' @param name See [crew_launcher_pbs()].
+    #' @param seconds_interval See [crew_launcher_slurm()].
+    #' @param seconds_timeout See [crew_launcher_slurm()].
     #' @param seconds_launch See [crew_launcher_pbs()].
     #' @param seconds_idle See [crew_launcher_pbs()].
     #' @param seconds_wall See [crew_launcher_pbs()].
@@ -180,6 +201,8 @@ crew_class_launcher_pbs <- R6::R6Class(
     #' @param pbs_walltime_hours See [crew_launcher_pbs()].
     initialize = function(
       name = NULL,
+      seconds_interval = NULL,
+      seconds_timeout = NULL,
       seconds_launch = NULL,
       seconds_idle = NULL,
       seconds_wall = NULL,
@@ -206,6 +229,8 @@ crew_class_launcher_pbs <- R6::R6Class(
     ) {
       super$initialize(
         name = name,
+        seconds_interval = seconds_interval,
+        seconds_timeout = seconds_timeout,
         seconds_launch = seconds_launch,
         seconds_idle = seconds_idle,
         seconds_wall = seconds_wall,
@@ -223,29 +248,29 @@ crew_class_launcher_pbs <- R6::R6Class(
         script_directory = script_directory,
         script_lines = script_lines
       )
-      self$pbs_cwd <- pbs_cwd
-      self$pbs_log_output <- pbs_log_output
-      self$pbs_log_error <- pbs_log_error
-      self$pbs_log_join <- pbs_log_join
-      self$pbs_memory_gigabytes_required <- pbs_memory_gigabytes_required
-      self$pbs_cores <- pbs_cores
-      self$pbs_walltime_hours <- pbs_walltime_hours
+      private$.pbs_cwd <- pbs_cwd
+      private$.pbs_log_output <- pbs_log_output
+      private$.pbs_log_error <- pbs_log_error
+      private$.pbs_log_join <- pbs_log_join
+      private$.pbs_memory_gigabytes_required <- pbs_memory_gigabytes_required
+      private$.pbs_cores <- pbs_cores
+      private$.pbs_walltime_hours <- pbs_walltime_hours
     },
     #' @description Validate the launcher.
     #' @return `NULL` (invisibly). Throws an error if a field is invalid.
     validate = function() {
       super$validate()
       crew::crew_assert(
-        self$pbs_log_output,
+        private$.pbs_log_output,
         is.character(.),
         length(.) == 1L,
         !anyNA(.),
         nzchar(.),
         message = "pbs_log_output must be a nonempty length-1 character string."
       )
-      if (!is.null(self$pbs_log_error)) {
+      if (!is.null(private$.pbs_log_error)) {
         crew::crew_assert(
-          self$pbs_log_error,
+          private$.pbs_log_error,
           is.character(.),
           length(.) == 1L,
           !anyNA(.),
@@ -305,36 +330,36 @@ crew_class_launcher_pbs <- R6::R6Class(
     script = function(name) {
       c(
         paste("#PBS -N", name),
-        paste("#PBS -o", self$pbs_log_output),
+        paste("#PBS -o", private$.pbs_log_output),
         if_any(
-          is.null(self$pbs_log_error),
+          is.null(private$.pbs_log_error),
           character(0L),
-          paste("#PBS -e", self$pbs_log_error)
+          paste("#PBS -e", private$.pbs_log_error)
         ),
-        if_any(self$pbs_log_join, "#PBS -j oe", "#PBS -j n"),
+        if_any(private$.pbs_log_join, "#PBS -j oe", "#PBS -j n"),
         if_any(
-          is.null(self$pbs_memory_gigabytes_required),
+          is.null(private$.pbs_memory_gigabytes_required),
           character(0L),
           sprintf(
             "#PBS -l mem=%sgb",
-            self$pbs_memory_gigabytes_required
+            private$.pbs_memory_gigabytes_required
           )
         ),
         if_any(
-          is.null(self$pbs_cores),
+          is.null(private$.pbs_cores),
           character(0L),
-          paste0("#PBS -l ppn=", as.character(self$pbs_cores))
+          paste0("#PBS -l ppn=", as.character(private$.pbs_cores))
         ),
         if_any(
-          is.null(self$pbs_walltime_hours),
+          is.null(private$.pbs_walltime_hours),
           character(0L),
           sprintf(
             "#PBS -l walltime=%s:00:00",
-            as.character(self$pbs_walltime_hours)
+            as.character(private$.pbs_walltime_hours)
           )
         ),
-        self$script_lines,
-        if_any(self$pbs_cwd, "cd \"$PBS_O_WORKDIR\"", character(0L))
+        private$.script_lines,
+        if_any(private$.pbs_cwd, "cd \"$PBS_O_WORKDIR\"", character(0L))
       )
     }
   )

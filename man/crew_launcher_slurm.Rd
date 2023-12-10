@@ -7,7 +7,8 @@ SLURM workers.}
 \usage{
 crew_launcher_slurm(
   name = NULL,
-  seconds_interval = NULL,
+  seconds_interval = 0.5,
+  seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
@@ -35,8 +36,14 @@ crew_launcher_slurm(
 \arguments{
 \item{name}{Name of the launcher.}
 
-\item{seconds_interval}{Deprecated in version 0.5.0.9003 (2023-10-02)
-no longer used.}
+\item{seconds_interval}{Number of seconds between
+polling intervals waiting for certain internal
+synchronous operations to complete,
+such as checking \code{mirai::status()}.}
+
+\item{seconds_timeout}{Number of seconds until timing
+out while waiting for certain synchronous operations to complete,
+such as checking \code{mirai::status()}.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -197,15 +204,8 @@ source code for additional attribution.
 }
 
 \seealso{
-Other launchers: 
-\code{\link{crew_class_launcher_cluster}},
-\code{\link{crew_class_launcher_lsf}},
-\code{\link{crew_class_launcher_pbs}},
-\code{\link{crew_class_launcher_sge}},
+Other plugin_slurm: 
 \code{\link{crew_class_launcher_slurm}},
-\code{\link{crew_launcher_cluster}()},
-\code{\link{crew_launcher_lsf}()},
-\code{\link{crew_launcher_pbs}()},
-\code{\link{crew_launcher_sge}()}
+\code{\link{crew_controller_slurm}()}
 }
-\concept{launchers}
+\concept{plugin_slurm}
