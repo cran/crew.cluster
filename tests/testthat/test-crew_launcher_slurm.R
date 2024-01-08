@@ -63,10 +63,20 @@ test_that("crew_launcher_slurm() script() all lines", {
   expect_equal(out, exp)
 })
 
-test_that("args_terminate()", {
+test_that(".args_terminate()", {
   x <- crew_launcher_slurm()
+  private <- crew_private(x)
   expect_equal(
-    x$args_terminate(name = "my_job"),
+    private$.args_terminate(name = "my_job"),
     c("--name", shQuote("my_job"))
   )
+})
+
+test_that("deprecate command_delete", {
+  skip_on_cran()
+  expect_warning(
+    x <- crew_launcher_slurm(command_delete = "user_del"),
+    class = "crew_deprecate"
+  )
+  expect_equal(x$command_terminate, "user_del")
 })

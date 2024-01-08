@@ -69,8 +69,6 @@ Other plugin_lsf:
 \item \href{#method-crew_class_launcher_lsf-new}{\code{crew_class_launcher_lsf$new()}}
 \item \href{#method-crew_class_launcher_lsf-validate}{\code{crew_class_launcher_lsf$validate()}}
 \item \href{#method-crew_class_launcher_lsf-script}{\code{crew_class_launcher_lsf$script()}}
-\item \href{#method-crew_class_launcher_lsf-args_launch}{\code{crew_class_launcher_lsf$args_launch()}}
-\item \href{#method-crew_class_launcher_lsf-args_terminate}{\code{crew_class_launcher_lsf$args_terminate()}}
 }
 }
 \if{html}{\out{
@@ -122,7 +120,7 @@ LSF launcher constructor.
   tls = NULL,
   verbose = NULL,
   command_submit = NULL,
-  command_delete = NULL,
+  command_terminate = NULL,
   script_directory = NULL,
   script_lines = NULL,
   lsf_cwd = NULL,
@@ -169,7 +167,7 @@ LSF launcher constructor.
 
 \item{\code{command_submit}}{See \code{\link[=crew_launcher_lsf]{crew_launcher_lsf()}}.}
 
-\item{\code{command_delete}}{See \code{\link[=crew_launcher_lsf]{crew_launcher_lsf()}}.}
+\item{\code{command_terminate}}{See \code{\link[=crew_launcher_lsf]{crew_launcher_lsf()}}.}
 
 \item{\code{script_directory}}{See \code{\link[=crew_launcher_lsf]{crew_launcher_lsf()}}.}
 
@@ -249,49 +247,5 @@ launcher$script(name = "my_job_name")
 
 }
 
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-crew_class_launcher_lsf-args_launch"></a>}}
-\if{latex}{\out{\hypertarget{method-crew_class_launcher_lsf-args_launch}{}}}
-\subsection{Method \code{args_launch()}}{
-Worker launch arguments.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_lsf$args_launch(script)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{script}}{Character of length 1, path to the job script for
-the scheduler.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of arguments to the command that
-launches a worker.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-crew_class_launcher_lsf-args_terminate"></a>}}
-\if{latex}{\out{\hypertarget{method-crew_class_launcher_lsf-args_terminate}{}}}
-\subsection{Method \code{args_terminate()}}{
-Termination arguments.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_lsf$args_terminate(name)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{Character of length 1, name of the job of the worker
-on the scheduler.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of arguments to the command that
-terminates a worker.
-}
 }
 }

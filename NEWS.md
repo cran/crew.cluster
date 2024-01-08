@@ -1,7 +1,15 @@
+# crew.cluster 0.2.0
+
+* Re-enable unit tests.
+* Require `crew` >= 0.7.0.
+* Add a "monitor" class for SGE clusters to conveniently list and terminate jobs.
+* Deprecate `command_delete` in favor of `command_terminate`.
+
 # crew.cluster 0.1.4
 
 * Refactor methods for development `crew`.
-* Encapsulate non-function `R6` members in the `private` list.
+* Encapsulate non-function `R6` members inside the `private` list.
+* Encapsulate functions for launch/termination commands inside the `R6` `private` list.
 
 # crew.cluster 0.1.3
 

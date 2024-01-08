@@ -72,7 +72,8 @@ crew_launcher_lsf <- function(
   tls = crew::crew_tls(mode = "automatic"),
   verbose = FALSE,
   command_submit = as.character(Sys.which("bsub")),
-  command_delete = as.character(Sys.which("bkill")),
+  command_terminate = as.character(Sys.which("bkill")),
+  command_delete = NULL,
   script_directory = tempdir(),
   script_lines = character(0L),
   lsf_cwd = getwd(),
@@ -83,6 +84,15 @@ crew_launcher_lsf <- function(
   lsf_cores = NULL
 ) {
   name <- as.character(name %|||% crew::crew_random_name())
+  if (!is.null(command_delete)) {
+    crew::crew_deprecate(
+      name = "command_delete",
+      date = "2023-01-08",
+      version = "0.1.4.9001",
+      alternative = "command_terminate"
+    )
+    command_terminate <- command_delete
+  }
   launcher <- crew_class_launcher_lsf$new(
     name = name,
     seconds_interval = seconds_interval,
@@ -100,7 +110,7 @@ crew_launcher_lsf <- function(
     tls = tls,
     verbose = verbose,
     command_submit = command_submit,
-    command_delete = command_delete,
+    command_terminate = command_terminate,
     script_directory = script_directory,
     script_lines = script_lines,
     lsf_cwd = lsf_cwd,
@@ -130,7 +140,13 @@ crew_class_launcher_lsf <- R6::R6Class(
     .lsf_log_error = NULL,
     .lsf_memory_gigabytes_limit = NULL,
     .lsf_memory_gigabytes_required = NULL,
-    .lsf_cores = NULL
+    .lsf_cores = NULL,
+    .args_launch = function(script) {
+      c("<", shQuote(script))
+    },
+    .args_terminate = function(name) {
+      c("-J", shQuote(name))
+    }
   ),
   active = list(
     #' @field lsf_cwd See [crew_launcher_lsf()].
@@ -177,7 +193,7 @@ crew_class_launcher_lsf <- R6::R6Class(
     #' @param tls See [crew_launcher_lsf()].
     #' @param verbose See [crew_launcher_lsf()].
     #' @param command_submit See [crew_launcher_lsf()].
-    #' @param command_delete See [crew_launcher_lsf()].
+    #' @param command_terminate See [crew_launcher_lsf()].
     #' @param script_directory See [crew_launcher_lsf()].
     #' @param script_lines See [crew_launcher_lsf()].
     #' @param lsf_cwd See [crew_launcher_lsf()].
@@ -203,7 +219,7 @@ crew_class_launcher_lsf <- R6::R6Class(
       tls = NULL,
       verbose = NULL,
       command_submit = NULL,
-      command_delete = NULL,
+      command_terminate = NULL,
       script_directory = NULL,
       script_lines = NULL,
       lsf_cwd = NULL,
@@ -230,7 +246,7 @@ crew_class_launcher_lsf <- R6::R6Class(
         tls = tls,
         verbose = verbose,
         command_submit = command_submit,
-        command_delete = command_delete,
+        command_terminate = command_terminate,
         script_directory = script_directory,
         script_lines = script_lines
       )
@@ -337,22 +353,6 @@ crew_class_launcher_lsf <- R6::R6Class(
         ),
         private$.script_lines
       )
-    },
-    #' @description Worker launch arguments.
-    #' @return Character vector of arguments to the command that
-    #'   launches a worker.
-    #' @param script Character of length 1, path to the job script for
-    #'   the scheduler.
-    args_launch = function(script) {
-      c("<", shQuote(script))
-    },
-    #' @description Termination arguments.
-    #' @return Character vector of arguments to the command that
-    #'   terminates a worker.
-    #' @param name Character of length 1, name of the job of the worker
-    #'   on the scheduler.
-    args_terminate = function(name) {
-      c("-J", shQuote(name))
     }
   )
 )
