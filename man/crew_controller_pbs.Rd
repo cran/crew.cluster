@@ -14,7 +14,7 @@ crew_controller_pbs(
   tls_enable = NULL,
   tls_config = NULL,
   seconds_interval = 0.25,
-  seconds_timeout = 10,
+  seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
@@ -235,8 +235,8 @@ controller$terminate()
 }
 }
 \seealso{
-Other plugin_pbs: 
+Other pbs: 
 \code{\link{crew_class_launcher_pbs}},
 \code{\link{crew_launcher_pbs}()}
 }
-\concept{plugin_pbs}
+\concept{pbs}

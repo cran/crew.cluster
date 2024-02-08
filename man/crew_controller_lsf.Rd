@@ -14,7 +14,7 @@ crew_controller_lsf(
   tls_enable = NULL,
   tls_config = NULL,
   seconds_interval = 0.25,
-  seconds_timeout = 10,
+  seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
@@ -235,8 +235,8 @@ controller$terminate()
 }
 }
 \seealso{
-Other plugin_lsf: 
+Other lsf: 
 \code{\link{crew_class_launcher_lsf}},
 \code{\link{crew_launcher_lsf}()}
 }
-\concept{plugin_lsf}
+\concept{lsf}

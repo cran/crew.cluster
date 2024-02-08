@@ -1,7 +1,7 @@
 #' @title `r lifecycle::badge("experimental")` Create a controller with a
 #'   SLURM launcher.
 #' @export
-#' @family plugin_slurm
+#' @family slurm
 #' @description Create an `R6` object to submit tasks and
 #'   launch workers on SLURM workers.
 #' @details WARNING: the `crew.cluster` SLURM plugin is experimental
@@ -32,7 +32,7 @@ crew_controller_slurm <- function(
   tls_enable = NULL,
   tls_config = NULL,
   seconds_interval = 0.25,
-  seconds_timeout = 10,
+  seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = Inf,
   seconds_wall = Inf,
