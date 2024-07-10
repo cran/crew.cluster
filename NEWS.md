@@ -1,6 +1,10 @@
+# crew.cluster 0.3.2
+
+* Add `retry_tasks` argument.
+
 # crew.cluster 0.3.1
 
-* Add a monitor class for SLURM clusters.
+* Add a SLURM monitor (#32, @brendanf).
 
 # crew.cluster 0.3.0
 
