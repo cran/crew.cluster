@@ -8,38 +8,22 @@
 #'   for specific computing platforms.
 #' @inheritSection crew.cluster-package Attribution
 #' @inheritParams crew::crew_launcher
-#' @param verbose Logical, whether to see console output and error messages
-#'   when submitting worker.
-#' @param command_submit Character of length 1,
-#'   file path to the executable to submit a worker job.
-#' @param command_terminate Character of length 1,
-#'   file path to the executable to terminate a worker job.
-#'   Set to `""` to skip manually terminating the worker.
-#'   Unless there is an issue with the platform,
-#'   the job should still exit thanks to the NNG-powered network programming
-#'   capabilities of `mirai`. Still, if you set `command_terminate = ""`,
-#'   you are assuming extra responsibility for manually monitoring
-#'   your jobs on the cluster and manually terminating jobs as appropriate.
+#' @param options_cluster List of options from a `crew.cluster`
+#'   options function such as [crew_options_slurm()].
+#'   Make sure the cluster types of the launcher and options function match.
+#' @param verbose Deprecated. Use `options_cluster` instead.
+#' @param command_submit Deprecated. Use `options_cluster` instead.
+#' @param command_terminate Deprecated. Use `options_cluster` instead.
 #' @param command_delete Deprecated on 2024-01-08 (version 0.1.4.9001).
 #'   Use `command_terminate` instead.
-#' @param script_directory Character of length 1, directory path to the
-#'   job scripts. Just before each job submission, a job script
-#'   is created in this folder. Script base names are unique to each
-#'   launcher and worker, and the launcher deletes the script when the
-#'   worker is manually terminated. `tempdir()` is the default, but it
-#'   might not work for some systems.
-#'   `tools::R_user_dir("crew.cluster", which = "cache")`
-#'   is another reasonable choice.
-#' @param script_lines Optional character vector of additional lines to be
-#'   added to the job script just after the more common flags.
-#'   An example would be `script_lines = "module load R"` if your cluster
-#'   supports R through an environment module.
+#' @param script_directory Deprecated. Use `options_cluster` instead.
+#' @param script_lines Deprecated. Use `options_cluster` instead.
 crew_launcher_cluster <- function(
   name = NULL,
   seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
-  seconds_idle = Inf,
+  seconds_idle = 300,
   seconds_wall = Inf,
   tasks_max = Inf,
   tasks_timers = 0L,
@@ -47,24 +31,45 @@ crew_launcher_cluster <- function(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  launch_max = 5L,
+  crashes_error = 5L,
   tls = crew::crew_tls(mode = "automatic"),
-  verbose = FALSE,
-  command_submit = "",
-  command_terminate = "",
+  r_arguments = c("--no-save", "--no-restore"),
+  options_metrics = crew::crew_options_metrics(),
+  options_cluster = crew.cluster::crew_options_cluster(),
+  verbose = NULL,
+  command_submit = NULL,
+  command_terminate = NULL,
   command_delete = NULL,
-  script_directory = tempdir(),
-  script_lines = character(0L)
+  script_directory = NULL,
+  script_lines = NULL
 ) {
   name <- as.character(name %|||% crew::crew_random_name())
-  if (!is.null(command_delete)) {
+  crew::crew_deprecate(
+    name = "command_delete",
+    date = "2023-01-08",
+    version = "0.1.4.9001",
+    alternative = "command_terminate",
+    value = command_delete
+  )
+  command_terminate <- command_delete %|||% command_terminate
+  deprecated <- c(
+    "verbose",
+    "command_submit",
+    "command_terminate",
+    "command_delete",
+    "script_directory",
+    "script_lines"
+  )
+  for (arg in deprecated) {
+    value <- get(arg)
     crew::crew_deprecate(
-      name = "command_delete",
-      date = "2023-01-08",
-      version = "0.1.4.9001",
-      alternative = "command_terminate"
+      name = arg,
+      date = "2024-10-09",
+      version = "0.3.2.9005",
+      alternative = "options_cluster argument",
+      value = value
     )
-    command_terminate <- command_delete
+    options_cluster[[arg]] <- value %|||% options_cluster[[arg]]
   }
   launcher <- crew_class_launcher_cluster$new(
     name = name,
@@ -79,13 +84,11 @@ crew_launcher_cluster <- function(
     reset_packages = reset_packages,
     reset_options = reset_options,
     garbage_collection = garbage_collection,
-    launch_max = launch_max,
+    crashes_error = crashes_error,
     tls = tls,
-    verbose = verbose,
-    command_submit = command_submit,
-    command_terminate = command_terminate,
-    script_directory = script_directory,
-    script_lines = script_lines
+    r_arguments = r_arguments,
+    options_metrics = options_metrics,
+    options_cluster = options_cluster
   )
   launcher$validate()
   launcher
@@ -103,11 +106,7 @@ crew_class_launcher_cluster <- R6::R6Class(
   inherit = crew::crew_class_launcher,
   cloneable = FALSE,
   private = list(
-    .verbose = NULL,
-    .command_submit = NULL,
-    .command_terminate = NULL,
-    .script_directory = NULL,
-    .script_lines = NULL,
+    .options_cluster = NULL,
     .prefix = NULL,
     .args_launch = function(script) {
       shQuote(script)
@@ -117,30 +116,9 @@ crew_class_launcher_cluster <- R6::R6Class(
     }
   ),
   active = list(
-    #' @field verbose See [crew_launcher_cluster()].
-    verbose = function() {
-      .subset2(private, ".verbose")
-    },
-    #' @field command_submit See [crew_launcher_cluster()].
-    command_submit = function() {
-      .subset2(private, ".command_submit")
-    },
-    #' @field command_terminate See [crew_launcher_cluster()].
-    command_terminate = function() {
-      .subset2(private, ".command_terminate")
-    },
-    #' @field script_directory See [crew_launcher_cluster()].
-    script_directory = function() {
-      .subset2(private, ".script_directory")
-    },
-    #' @field script_lines See [crew_launcher_cluster()].
-    script_lines = function() {
-      .subset2(private, ".script_lines")
-    },
-    #' @field prefix Character of length 1, randomly generated sub-string
-    #'   in job names.
-    prefix = function() {
-      .subset2(private, ".prefix")
+    #' @field options_cluster See [crew_launcher_cluster()].
+    options_cluster = function() {
+      .subset2(private, ".options_cluster")
     }
   ),
   public = list(
@@ -158,13 +136,11 @@ crew_class_launcher_cluster <- R6::R6Class(
     #' @param reset_packages See [crew_launcher_cluster()].
     #' @param reset_options See [crew_launcher_cluster()].
     #' @param garbage_collection See [crew_launcher_cluster()].
-    #' @param launch_max See [crew_launcher_cluster()].
+    #' @param crashes_error See [crew_launcher_cluster()].
     #' @param tls See [crew_launcher_cluster()].
-    #' @param verbose See [crew_launcher_cluster()].
-    #' @param command_submit See [crew_launcher_cluster()].
-    #' @param command_terminate See [crew_launcher_cluster()].
-    #' @param script_directory See [crew_launcher_cluster()].
-    #' @param script_lines See [crew_launcher_cluster()].
+    #' @param r_arguments See [crew_launcher_cluster()].
+    #' @param options_metrics See [crew_launcher_cluster()].
+    #' @param options_cluster See [crew_launcher_cluster()].
     initialize = function(
       name = NULL,
       seconds_interval = NULL,
@@ -178,13 +154,11 @@ crew_class_launcher_cluster <- R6::R6Class(
       reset_packages = NULL,
       reset_options = NULL,
       garbage_collection = NULL,
-      launch_max = NULL,
+      crashes_error = NULL,
       tls = NULL,
-      verbose = NULL,
-      command_submit = NULL,
-      command_terminate = NULL,
-      script_directory = NULL,
-      script_lines = NULL
+      r_arguments = NULL,
+      options_metrics = NULL,
+      options_cluster = NULL
     ) {
       super$initialize(
         name = name,
@@ -199,42 +173,18 @@ crew_class_launcher_cluster <- R6::R6Class(
         reset_packages = reset_packages,
         reset_options = reset_options,
         garbage_collection = garbage_collection,
-        launch_max = launch_max,
-        tls = tls
+        crashes_error = crashes_error,
+        tls = tls,
+        r_arguments = r_arguments,
+        options_metrics = options_metrics
       )
-      private$.verbose <- verbose
-      private$.command_submit <- command_submit
-      private$.command_terminate <- command_terminate
-      private$.script_directory <- script_directory
-      private$.script_lines <- script_lines
+      private$.options_cluster <- options_cluster
     },
     #' @description Validate the launcher.
     #' @return `NULL` (invisibly). Throws an error if a field is invalid.
     validate = function() {
       super$validate() # nolint
-      crew::crew_assert(
-        private$.verbose,
-        isTRUE(.) || isFALSE(.),
-        message = "the \"verbose\" field is not a length-1 logical."
-      )
-      fields <- c("command_submit", "command_submit", "script_directory")
-      for (field in fields) {
-        crew::crew_assert(
-          self[[field]],
-          is.character(.),
-          length(.) == 1L,
-          !anyNA(.),
-          message = paste(field, "must be a valid length-1 character string.")
-        )
-      }
-      if (!is.null(private$.script_lines)) {
-        crew::crew_assert(
-          private$.script_lines,
-          is.character(.),
-          !anyNA(.),
-          message = "invalid script_lines field"
-        )
-      }
+      crew_options_validate(private$.options_cluster)
       invisible()
     },
     #' @description Launch a local process worker which will
@@ -255,25 +205,46 @@ crew_class_launcher_cluster <- R6::R6Class(
     #' @param instance Character of length 1 to uniquely identify
     #'   the current instance of the worker.
     launch_worker = function(call, name, launcher, worker, instance) {
-      lines <- c(self$script(name = name), paste("R -e", shQuote(call)))
+      attempt <- self$crashes(index = worker) + 1L
+      if (private$.options_cluster$verbose && (attempt > 1L)) {
+        crew_message(
+          "Attempt ",
+          attempt,
+          " of ",
+          private$.crashes_error,
+          ": instance ",
+          instance,
+          " worker ",
+          worker,
+          " launcher ",
+          launcher
+        )
+      }
+      lines <- c(
+        self$script(name = name, attempt = attempt),
+        paste("Rscript -e", shQuote(call))
+      )
       if (is.null(private$.prefix)) {
-        if (!file.exists(private$.script_directory)) {
-          dir.create(private$.script_directory, recursive = TRUE)
+        if (!file.exists(private$.options_cluster$script_directory)) {
+          dir.create(
+            private$.options_cluster$script_directory,
+            recursive = TRUE
+          )
         }
         private$.prefix <- crew::crew_random_name()
       }
       script <- path_script(
-        dir = private$.script_directory,
+        dir = private$.options_cluster$script_directory,
         prefix = private$.prefix,
         launcher = launcher,
         worker = worker
       )
       writeLines(text = lines, con = script)
       system2(
-        command = private$.command_submit,
+        command = private$.options_cluster$command_submit,
         args = private$.args_launch(script = script),
-        stdout = if_any(private$.verbose, "", FALSE),
-        stderr = if_any(private$.verbose, "", FALSE),
+        stdout = if_any(private$.options_cluster$verbose, "", FALSE),
+        stderr = if_any(private$.options_cluster$verbose, "", FALSE),
         wait = FALSE
       )
       list(name = name, script = script)
@@ -284,12 +255,12 @@ crew_class_launcher_cluster <- R6::R6Class(
     #'   returned by `launch_worker()`.
     terminate_worker = function(handle) {
       unlink(handle$script)
-      if (nzchar(private$.command_terminate)) {
+      if (nzchar(private$.options_cluster$command_terminate)) {
         system2(
-          command = private$.command_terminate,
+          command = private$.options_cluster$command_terminate,
           args = private$.args_terminate(name = handle$name),
-          stdout = if_any(private$.verbose, "", FALSE),
-          stderr = if_any(private$.verbose, "", FALSE),
+          stdout = if_any(private$.options_cluster$verbose, "", FALSE),
+          stderr = if_any(private$.options_cluster$verbose, "", FALSE),
           wait = FALSE
         )
       }

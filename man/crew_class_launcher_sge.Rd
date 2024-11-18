@@ -40,39 +40,16 @@ Other sge:
 \code{\link{crew_class_monitor_sge}},
 \code{\link{crew_controller_sge}()},
 \code{\link{crew_launcher_sge}()},
-\code{\link{crew_monitor_sge}()}
+\code{\link{crew_monitor_sge}()},
+\code{\link{crew_options_sge}()}
 }
 \concept{sge}
 \section{Super classes}{
 \code{\link[crew:crew_class_launcher]{crew::crew_class_launcher}} -> \code{\link[crew.cluster:crew_class_launcher_cluster]{crew.cluster::crew_class_launcher_cluster}} -> \code{crew_class_launcher_sge}
 }
-\section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{sge_cwd}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_envvars}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_output}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_error}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_join}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_memory_gigabytes_limit}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_memory_gigabytes_required}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_cores}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_gpu}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-crew_class_launcher_sge-new}{\code{crew_class_launcher_sge$new()}}
 \item \href{#method-crew_class_launcher_sge-validate}{\code{crew_class_launcher_sge$validate()}}
 \item \href{#method-crew_class_launcher_sge-script}{\code{crew_class_launcher_sge$script()}}
 }
@@ -83,6 +60,7 @@ Other sge:
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="active"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-active'><code>crew::crew_class_launcher$active()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="booting"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-booting'><code>crew::crew_class_launcher$booting()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="call"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-call'><code>crew::crew_class_launcher$call()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="crashes"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-crashes'><code>crew::crew_class_launcher$crashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="done"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-done'><code>crew::crew_class_launcher$done()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="errors"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-errors'><code>crew::crew_class_launcher$errors()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="forward"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-forward'><code>crew::crew_class_launcher$forward()</code></a></span></li>
@@ -98,114 +76,12 @@ Other sge:
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="terminate_workers"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-terminate_workers'><code>crew::crew_class_launcher$terminate_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="unlaunched"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-unlaunched'><code>crew::crew_class_launcher$unlaunched()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="wait"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-wait'><code>crew::crew_class_launcher$wait()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew.cluster" data-topic="crew_class_launcher_cluster" data-id="initialize"><a href='../../crew.cluster/html/crew_class_launcher_cluster.html#method-crew_class_launcher_cluster-initialize'><code>crew.cluster::crew_class_launcher_cluster$initialize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew.cluster" data-topic="crew_class_launcher_cluster" data-id="launch_worker"><a href='../../crew.cluster/html/crew_class_launcher_cluster.html#method-crew_class_launcher_cluster-launch_worker'><code>crew.cluster::crew_class_launcher_cluster$launch_worker()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew.cluster" data-topic="crew_class_launcher_cluster" data-id="terminate_worker"><a href='../../crew.cluster/html/crew_class_launcher_cluster.html#method-crew_class_launcher_cluster-terminate_worker'><code>crew.cluster::crew_class_launcher_cluster$terminate_worker()</code></a></span></li>
 </ul>
 </details>
 }}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-crew_class_launcher_sge-new"></a>}}
-\if{latex}{\out{\hypertarget{method-crew_class_launcher_sge-new}{}}}
-\subsection{Method \code{new()}}{
-SGE launcher constructor.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_sge$new(
-  name = NULL,
-  seconds_interval = NULL,
-  seconds_timeout = NULL,
-  seconds_launch = NULL,
-  seconds_idle = NULL,
-  seconds_wall = NULL,
-  tasks_max = NULL,
-  tasks_timers = NULL,
-  reset_globals = NULL,
-  reset_packages = NULL,
-  reset_options = NULL,
-  garbage_collection = NULL,
-  launch_max = NULL,
-  tls = NULL,
-  verbose = NULL,
-  command_submit = NULL,
-  command_terminate = NULL,
-  script_directory = NULL,
-  script_lines = NULL,
-  sge_cwd = NULL,
-  sge_envvars = NULL,
-  sge_log_output = NULL,
-  sge_log_error = NULL,
-  sge_log_join = NULL,
-  sge_memory_gigabytes_limit = NULL,
-  sge_memory_gigabytes_required = NULL,
-  sge_cores = NULL,
-  sge_gpu = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{seconds_interval}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
-
-\item{\code{seconds_timeout}}{See \code{\link[=crew_launcher_slurm]{crew_launcher_slurm()}}.}
-
-\item{\code{seconds_launch}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{seconds_idle}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{seconds_wall}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{tasks_max}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{tasks_timers}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{reset_globals}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{reset_packages}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{reset_options}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{garbage_collection}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{launch_max}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{tls}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{verbose}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{command_submit}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{command_terminate}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{script_directory}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{script_lines}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_cwd}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_envvars}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_output}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_error}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_log_join}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_memory_gigabytes_limit}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_memory_gigabytes_required}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_cores}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-
-\item{\code{sge_gpu}}{See \code{\link[=crew_launcher_sge]{crew_launcher_sge()}}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-an SGE launcher object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-crew_class_launcher_sge-validate"></a>}}
 \if{latex}{\out{\hypertarget{method-crew_class_launcher_sge-validate}{}}}
@@ -225,7 +101,7 @@ Validate the launcher.
 \subsection{Method \code{script()}}{
 Generate the job script.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_sge$script(name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_sge$script(name, attempt)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -233,6 +109,15 @@ Generate the job script.
 \describe{
 \item{\code{name}}{Character of length 1, name of the job. For inspection
 purposes, you can supply a mock job name.}
+
+\item{\code{attempt}}{Positive integer, number of the current attempt.
+The attempt number increments each time a worker exits
+without completing all its tasks, and it resets
+back to 1 if a worker instance successfully completes
+all its tasks and then exits normally.
+By assigning vector arguments
+to the cluster-specific options of the controller,
+you can configure different sets of resources for different attempts.}
 }
 \if{html}{\out{</div>}}
 }

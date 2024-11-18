@@ -16,7 +16,7 @@ crew_controller_slurm(
   seconds_interval = 0.25,
   seconds_timeout = 60,
   seconds_launch = 86400,
-  seconds_idle = Inf,
+  seconds_idle = 300,
   seconds_wall = Inf,
   seconds_exit = NULL,
   retry_tasks = TRUE,
@@ -26,18 +26,22 @@ crew_controller_slurm(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  launch_max = 5L,
-  verbose = FALSE,
-  command_submit = as.character(Sys.which("sbatch")),
-  command_terminate = as.character(Sys.which("scancel")),
+  crashes_error = 5L,
+  r_arguments = c("--no-save", "--no-restore"),
+  options_metrics = crew::crew_options_metrics(),
+  options_cluster = crew.cluster::crew_options_slurm(),
+  verbose = NULL,
+  command_submit = NULL,
+  command_terminate = NULL,
   command_delete = NULL,
-  script_directory = tempdir(),
-  script_lines = character(0L),
-  slurm_log_output = "/dev/null",
-  slurm_log_error = "/dev/null",
+  script_directory = NULL,
+  script_lines = NULL,
+  slurm_log_output = NULL,
+  slurm_log_error = NULL,
+  slurm_memory_gigabytes_required = NULL,
   slurm_memory_gigabytes_per_cpu = NULL,
   slurm_cpus_per_task = NULL,
-  slurm_time_minutes = 1440,
+  slurm_time_minutes = NULL,
   slurm_partition = NULL
 )
 }
@@ -125,88 +129,58 @@ because packages sometimes rely on options they set at loading time.}
 \item{garbage_collection}{\code{TRUE} to run garbage collection between
 tasks, \code{FALSE} to skip.}
 
-\item{launch_max}{Positive integer of length 1, maximum allowed
-consecutive launch attempts which do not complete any tasks.
-Enforced on a worker-by-worker basis.
-The futile launch count resets to back 0
-for each worker that completes a task.
-It is recommended to set \code{launch_max} above 0
-because sometimes workers are unproductive under perfectly ordinary
-circumstances. But \code{launch_max} should still be small enough
-to detect errors in the underlying platform.}
+\item{crashes_error}{Positive integer scalar. If a worker exits
+\code{crashes_error} times in a row without completing all its assigned
+tasks, then the launcher throws an informative error.
+The reason for \code{crashes_error}
+is to avoid an infinite loop where a task crashes a worker
+(through a segfault, maxing out memory, etc) but the worker always
+relaunches. To monitor the resources of \code{crew} workers,
+please see \url{https://wlandau.github.io/crew/articles/logging.html}.}
 
-\item{verbose}{Logical, whether to see console output and error messages
-when submitting worker.}
+\item{r_arguments}{Optional character vector of command line arguments
+to pass to \code{Rscript} (non-Windows) or \code{Rscript.exe} (Windows)
+when starting a worker. Example:
+\code{r_arguments = c("--vanilla", "--max-connections=32")}.}
 
-\item{command_submit}{Character of length 1,
-file path to the executable to submit a worker job.}
+\item{options_metrics}{Either \code{NULL} to opt out of resource metric logging
+for workers, or an object from \code{\link[crew:crew_options_metrics]{crew_options_metrics()}} to enable
+and configure resource metric logging for workers.
+For resource logging to run,
+the \code{autometric} R package version 0.1.0 or higher
+must be installed.}
 
-\item{command_terminate}{Character of length 1,
-file path to the executable to terminate a worker job.
-Set to \code{""} to skip manually terminating the worker.
-Unless there is an issue with the platform,
-the job should still exit thanks to the NNG-powered network programming
-capabilities of \code{mirai}. Still, if you set \code{command_terminate = ""},
-you are assuming extra responsibility for manually monitoring
-your jobs on the cluster and manually terminating jobs as appropriate.}
+\item{options_cluster}{An options list from
+\code{\link[=crew_options_slurm]{crew_options_slurm()}} with cluster-specific configuration options.}
+
+\item{verbose}{Deprecated. Use \code{options_cluster} instead.}
+
+\item{command_submit}{Deprecated. Use \code{options_cluster} instead.}
+
+\item{command_terminate}{Deprecated. Use \code{options_cluster} instead.}
 
 \item{command_delete}{Deprecated on 2024-01-08 (version 0.1.4.9001).
 Use \code{command_terminate} instead.}
 
-\item{script_directory}{Character of length 1, directory path to the
-job scripts. Just before each job submission, a job script
-is created in this folder. Script base names are unique to each
-launcher and worker, and the launcher deletes the script when the
-worker is manually terminated. \code{tempdir()} is the default, but it
-might not work for some systems.
-\code{tools::R_user_dir("crew.cluster", which = "cache")}
-is another reasonable choice.}
+\item{script_directory}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{script_lines}{Optional character vector of additional lines to be
-added to the job script just after the more common flags.
-An example would be \code{script_lines = "module load R"} if your cluster
-supports R through an environment module.}
+\item{script_lines}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{slurm_log_output}{Character of length 1, file pattern to control
-the locations of the SLURM worker log files. By default, both standard
-output and standard error go to the same file.
-\code{slurm_log_output = "crew_log_\%A.txt"} translates to a line of
-\verb{#SBATCH --output=crew_log_\%A.txt} in the SLURM job script,
-where \verb{\%A} is replaced by the job ID of the worker.
-The default is \verb{/dev/null} to omit these logs.
-Set \code{slurm_log_output = NULL} to omit this line from the job script.}
+\item{slurm_log_output}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{slurm_log_error}{Character of length 1, file pattern for standard
-error. \code{slurm_log_error = "crew_log_\%A.txt"} translates to a line of
-\verb{#SBATCH --error=crew_log_\%A.txt} in the SLURM job script,
-where \verb{\%A} is replaced by the job ID of the worker.
-The default is \verb{/dev/null} to omit these logs.
-Set \code{slurm_log_error = NULL} to omit this line from the job script.}
+\item{slurm_log_error}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{slurm_memory_gigabytes_per_cpu}{Positive numeric of length 1
-with the gigabytes of memory required per CPU.
-\code{slurm_memory_gigabytes_per_cpu = 2.40123}
-translates to a line of \verb{#SBATCH --mem-per-cpu=2041M}
-in the SLURM job script.
-\code{slurm_memory_gigabytes_per_cpu = NULL} omits this line.}
+\item{slurm_memory_gigabytes_required}{Deprecated.
+Use \code{options_cluster} instead.}
 
-\item{slurm_cpus_per_task}{Optional positive integer of length 1,
-number of CPUs for the worker.
-\code{slurm_cpus_per_task = 4} translates
-to a line of \verb{#SBATCH --cpus-per-task=4} in the SLURM job script.
-\code{slurm_cpus_per_task = NULL} omits this line.}
+\item{slurm_memory_gigabytes_per_cpu}{Deprecated.
+Use \code{options_cluster} instead.}
 
-\item{slurm_time_minutes}{Numeric of length 1, number of minutes to
-designate as the wall time of \code{crew} each worker instance on the
-SLURM cluster. \code{slurm_time_minutes = 60} translates to a line of
-\verb{#SBATCH --time=60} in the SLURM job script. \code{slurm_time_minutes = NULL}
-omits this line.}
+\item{slurm_cpus_per_task}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{slurm_partition}{Character of length 1, name of the SLURM partition to
-create workers on. \code{slurm_partition = "partition1,partition2"}
-translates to a line of \verb{#SBATCH --partition=partition1,partition2}
-in the SLURM job script. \code{slurm_partition = NULL}
-omits this line.}
+\item{slurm_time_minutes}{Deprecated. Use \code{options_cluster} instead.}
+
+\item{slurm_partition}{Deprecated. Use \code{options_cluster} instead.}
 }
 \description{
 Create an \code{R6} object to submit tasks and
@@ -245,6 +219,7 @@ Other slurm:
 \code{\link{crew_class_launcher_slurm}},
 \code{\link{crew_class_monitor_slurm}},
 \code{\link{crew_launcher_slurm}()},
-\code{\link{crew_monitor_slurm}()}
+\code{\link{crew_monitor_slurm}()},
+\code{\link{crew_options_slurm}()}
 }
 \concept{slurm}

@@ -25,7 +25,8 @@ source code for additional attribution.
 Other cluster: 
 \code{\link{crew_class_monitor_cluster}},
 \code{\link{crew_launcher_cluster}()},
-\code{\link{crew_monitor_cluster}()}
+\code{\link{crew_monitor_cluster}()},
+\code{\link{crew_options_cluster}()}
 }
 \concept{cluster}
 \keyword{internal}
@@ -35,18 +36,7 @@ Other cluster:
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{verbose}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{command_submit}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{command_terminate}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{script_directory}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{script_lines}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{prefix}}{Character of length 1, randomly generated sub-string
-in job names.}
+\item{\code{options_cluster}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -65,6 +55,7 @@ in job names.}
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="active"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-active'><code>crew::crew_class_launcher$active()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="booting"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-booting'><code>crew::crew_class_launcher$booting()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="call"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-call'><code>crew::crew_class_launcher$call()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="crashes"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-crashes'><code>crew::crew_class_launcher$crashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="done"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-done'><code>crew::crew_class_launcher$done()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="errors"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-errors'><code>crew::crew_class_launcher$errors()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="forward"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-forward'><code>crew::crew_class_launcher$forward()</code></a></span></li>
@@ -102,13 +93,11 @@ Abstract launcher constructor.
   reset_packages = NULL,
   reset_options = NULL,
   garbage_collection = NULL,
-  launch_max = NULL,
+  crashes_error = NULL,
   tls = NULL,
-  verbose = NULL,
-  command_submit = NULL,
-  command_terminate = NULL,
-  script_directory = NULL,
-  script_lines = NULL
+  r_arguments = NULL,
+  options_metrics = NULL,
+  options_cluster = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -139,19 +128,15 @@ Abstract launcher constructor.
 
 \item{\code{garbage_collection}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 
-\item{\code{launch_max}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
+\item{\code{crashes_error}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 
 \item{\code{tls}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 
-\item{\code{verbose}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
+\item{\code{r_arguments}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 
-\item{\code{command_submit}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
+\item{\code{options_metrics}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 
-\item{\code{command_terminate}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{script_directory}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
-
-\item{\code{script_lines}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
+\item{\code{options_cluster}}{See \code{\link[=crew_launcher_cluster]{crew_launcher_cluster()}}.}
 }
 \if{html}{\out{</div>}}
 }

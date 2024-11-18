@@ -10,7 +10,7 @@ crew_launcher_sge(
   seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
-  seconds_idle = Inf,
+  seconds_idle = 300,
   seconds_wall = Inf,
   tasks_max = Inf,
   tasks_timers = 0L,
@@ -18,19 +18,22 @@ crew_launcher_sge(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  launch_max = 5L,
+  crashes_error = 5L,
   tls = crew::crew_tls(mode = "automatic"),
-  verbose = FALSE,
-  command_submit = as.character(Sys.which("qsub")),
-  command_terminate = as.character(Sys.which("qdel")),
+  r_arguments = c("--no-save", "--no-restore"),
+  options_metrics = crew::crew_options_metrics(),
+  options_cluster = crew.cluster::crew_options_sge(),
+  verbose = NULL,
+  command_submit = NULL,
+  command_terminate = NULL,
   command_delete = NULL,
-  script_directory = tempdir(),
-  script_lines = character(0L),
-  sge_cwd = TRUE,
-  sge_envvars = FALSE,
-  sge_log_output = "/dev/null",
+  script_directory = NULL,
+  script_lines = NULL,
+  sge_cwd = NULL,
+  sge_envvars = NULL,
+  sge_log_output = NULL,
   sge_log_error = NULL,
-  sge_log_join = TRUE,
+  sge_log_join = NULL,
   sge_memory_gigabytes_limit = NULL,
   sge_memory_gigabytes_required = NULL,
   sge_cores = NULL,
@@ -94,106 +97,64 @@ because packages sometimes rely on options they set at loading time.}
 \item{garbage_collection}{\code{TRUE} to run garbage collection between
 tasks, \code{FALSE} to skip.}
 
-\item{launch_max}{Positive integer of length 1, maximum allowed
-consecutive launch attempts which do not complete any tasks.
-Enforced on a worker-by-worker basis.
-The futile launch count resets to back 0
-for each worker that completes a task.
-It is recommended to set \code{launch_max} above 0
-because sometimes workers are unproductive under perfectly ordinary
-circumstances. But \code{launch_max} should still be small enough
-to detect errors in the underlying platform.}
+\item{crashes_error}{Positive integer scalar. If a worker exits
+\code{crashes_error} times in a row without completing all its assigned
+tasks, then the launcher throws an informative error.
+The reason for \code{crashes_error}
+is to avoid an infinite loop where a task crashes a worker
+(through a segfault, maxing out memory, etc) but the worker always
+relaunches. To monitor the resources of \code{crew} workers,
+please see \url{https://wlandau.github.io/crew/articles/logging.html}.}
 
 \item{tls}{A TLS configuration object from \code{\link[crew:crew_tls]{crew_tls()}}.}
 
-\item{verbose}{Logical, whether to see console output and error messages
-when submitting worker.}
+\item{r_arguments}{Optional character vector of command line arguments
+to pass to \code{Rscript} (non-Windows) or \code{Rscript.exe} (Windows)
+when starting a worker. Example:
+\code{r_arguments = c("--vanilla", "--max-connections=32")}.}
 
-\item{command_submit}{Character of length 1,
-file path to the executable to submit a worker job.}
+\item{options_metrics}{Either \code{NULL} to opt out of resource metric logging
+for workers, or an object from \code{\link[crew:crew_options_metrics]{crew_options_metrics()}} to enable
+and configure resource metric logging for workers.
+For resource logging to run,
+the \code{autometric} R package version 0.1.0 or higher
+must be installed.}
 
-\item{command_terminate}{Character of length 1,
-file path to the executable to terminate a worker job.
-Set to \code{""} to skip manually terminating the worker.
-Unless there is an issue with the platform,
-the job should still exit thanks to the NNG-powered network programming
-capabilities of \code{mirai}. Still, if you set \code{command_terminate = ""},
-you are assuming extra responsibility for manually monitoring
-your jobs on the cluster and manually terminating jobs as appropriate.}
+\item{options_cluster}{An options list from
+\code{\link[=crew_options_sge]{crew_options_sge()}} with cluster-specific configuration options.}
+
+\item{verbose}{Deprecated. Use \code{options_cluster} instead.}
+
+\item{command_submit}{Deprecated. Use \code{options_cluster} instead.}
+
+\item{command_terminate}{Deprecated. Use \code{options_cluster} instead.}
 
 \item{command_delete}{Deprecated on 2024-01-08 (version 0.1.4.9001).
 Use \code{command_terminate} instead.}
 
-\item{script_directory}{Character of length 1, directory path to the
-job scripts. Just before each job submission, a job script
-is created in this folder. Script base names are unique to each
-launcher and worker, and the launcher deletes the script when the
-worker is manually terminated. \code{tempdir()} is the default, but it
-might not work for some systems.
-\code{tools::R_user_dir("crew.cluster", which = "cache")}
-is another reasonable choice.}
+\item{script_directory}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{script_lines}{Optional character vector of additional lines to be
-added to the job script just after the more common flags.
-An example would be \code{script_lines = "module load R"} if your cluster
-supports R through an environment module.}
+\item{script_lines}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_cwd}{Logical of length 1, whether to
-launch the worker from the current working directory (as opposed to
-the user home directory). \code{sge_cwd = TRUE} translates to a line of
-\verb{#$ -cwd} in the SGE job script. \code{sge_cwd = FALSE} omits this line.}
+\item{sge_cwd}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_envvars}{Logical of length 1, whether to forward the environment
-variables of the current session to the SGE worker. \code{sge_envvars = TRUE}
-translates to a line of \verb{#$ -V} in the SGE job script.
-\code{sge_envvars = FALSE} omits this line.}
+\item{sge_envvars}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_log_output}{Character of length 1, file or directory path to SGE
-worker log files for standard output.
-\code{sge_log_output = "VALUE"} translates to a line of
-\verb{#$ -o VALUE} in the SGE job script. The default is \verb{/dev/null} to omit
-the logs. If you do supply a non-\verb{/dev/null} value,
-it is recommended to supply a
-directory path with a trailing slash so that each worker gets its own set
-of log files.}
+\item{sge_log_output}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_log_error}{Character of length 1, file or directory path to SGE
-worker log files for standard error.
-\code{sge_log_error = "VALUE"} translates to a line of
-\verb{#$ -e VALUE} in the SGE job script.
-The default of \code{NULL} omits this line.
-If you do supply a non-\verb{/dev/null} value, it is recommended to supply a
-directory path with a trailing slash so that each worker gets its own set
-of log files.}
+\item{sge_log_error}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_log_join}{Logical, whether to join the stdout and stderr log
-files together into one file. \code{sge_log_join = TRUE} translates to a line
-of \verb{#$ -j y} in the SGE job script, while \code{sge_log_join = FALSE} is
-equivalent to \verb{#$ -j n}. If \code{sge_log_join = TRUE}, then \code{sge_log_error}
-should be \code{NULL}.}
+\item{sge_log_join}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_memory_gigabytes_limit}{Optional numeric of length 1
-with the maximum number of gigabytes of memory a worker is allowed to
-consume. If the worker consumes more than this level of memory, then
-SGE will terminate it. \verb{sge_memory_gigabytes_limit = 5.7"}
-translates to a line of \code{"#$ -l h_rss=5.7G"} in the SGE job script.
-\code{sge_memory_gigabytes_limit = NULL} omits this line.}
+\item{sge_memory_gigabytes_limit}{Deprecated.
+Use \code{options_cluster} instead.}
 
-\item{sge_memory_gigabytes_required}{Optional positive numeric of length 1
-with the gigabytes of memory required to run the worker.
-\code{sge_memory_gigabytes_required = 2.4}
-translates to a line of \verb{#$ -l m_mem_free=2.4G} in the SGE job script.
-\code{sge_memory_gigabytes_required = NULL} omits this line.}
+\item{sge_memory_gigabytes_required}{Deprecated.
+Use \code{options_cluster} instead.}
 
-\item{sge_cores}{Optional positive integer of length 1,
-number of cores per worker ("slots" in SGE lingo).
-\code{sge_cores = 4} translates
-to a line of \verb{#$ -pe smp 4} in the SGE job script.
-\code{sge_cores = NULL} omits this line.}
+\item{sge_cores}{Deprecated. Use \code{options_cluster} instead.}
 
-\item{sge_gpu}{Optional integer of length 1 with the number of GPUs to
-request for the worker. \code{sge_gpu = 1} translates to a line of
-\code{"#$ -l gpu=1"} in the SGE job script. \code{sge_gpu = NULL} omits this line.}
+\item{sge_gpu}{Deprecated. Use \code{options_cluster} instead.}
 }
 \description{
 Create an \code{R6} object to launch and maintain
@@ -226,6 +187,7 @@ Other sge:
 \code{\link{crew_class_launcher_sge}},
 \code{\link{crew_class_monitor_sge}},
 \code{\link{crew_controller_sge}()},
-\code{\link{crew_monitor_sge}()}
+\code{\link{crew_monitor_sge}()},
+\code{\link{crew_options_sge}()}
 }
 \concept{sge}
