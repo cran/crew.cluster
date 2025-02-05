@@ -20,6 +20,7 @@
 #' @param script_lines Deprecated. Use `options_cluster` instead.
 crew_launcher_cluster <- function(
   name = NULL,
+  workers = 1L,
   seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
@@ -31,7 +32,7 @@ crew_launcher_cluster <- function(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  crashes_error = 5L,
+  crashes_error = NULL,
   tls = crew::crew_tls(mode = "automatic"),
   r_arguments = c("--no-save", "--no-restore"),
   options_metrics = crew::crew_options_metrics(),
@@ -50,6 +51,14 @@ crew_launcher_cluster <- function(
     version = "0.1.4.9001",
     alternative = "command_terminate",
     value = command_delete
+  )
+  crew::crew_deprecate(
+    name = "crashes_error",
+    date = "2025-01-27",
+    version = "0.3.4",
+    alternative = "crashes_max",
+    condition = "message",
+    value = crashes_error
   )
   command_terminate <- command_delete %|||% command_terminate
   deprecated <- c(
@@ -73,6 +82,7 @@ crew_launcher_cluster <- function(
   }
   launcher <- crew_class_launcher_cluster$new(
     name = name,
+    workers = workers,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
@@ -84,7 +94,6 @@ crew_launcher_cluster <- function(
     reset_packages = reset_packages,
     reset_options = reset_options,
     garbage_collection = garbage_collection,
-    crashes_error = crashes_error,
     tls = tls,
     r_arguments = r_arguments,
     options_metrics = options_metrics,
@@ -125,6 +134,7 @@ crew_class_launcher_cluster <- R6::R6Class(
     #' @description Abstract launcher constructor.
     #' @return An abstract launcher object.
     #' @param name See [crew_launcher_cluster()].
+    #' @param workers See [crew_launcher_cluster()].
     #' @param seconds_interval See [crew_launcher_cluster()].
     #' @param seconds_timeout See [crew_launcher_cluster()].
     #' @param seconds_launch See [crew_launcher_cluster()].
@@ -136,13 +146,13 @@ crew_class_launcher_cluster <- R6::R6Class(
     #' @param reset_packages See [crew_launcher_cluster()].
     #' @param reset_options See [crew_launcher_cluster()].
     #' @param garbage_collection See [crew_launcher_cluster()].
-    #' @param crashes_error See [crew_launcher_cluster()].
     #' @param tls See [crew_launcher_cluster()].
     #' @param r_arguments See [crew_launcher_cluster()].
     #' @param options_metrics See [crew_launcher_cluster()].
     #' @param options_cluster See [crew_launcher_cluster()].
     initialize = function(
       name = NULL,
+      workers = NULL,
       seconds_interval = NULL,
       seconds_timeout = NULL,
       seconds_launch = NULL,
@@ -154,7 +164,6 @@ crew_class_launcher_cluster <- R6::R6Class(
       reset_packages = NULL,
       reset_options = NULL,
       garbage_collection = NULL,
-      crashes_error = NULL,
       tls = NULL,
       r_arguments = NULL,
       options_metrics = NULL,
@@ -162,6 +171,7 @@ crew_class_launcher_cluster <- R6::R6Class(
     ) {
       super$initialize(
         name = name,
+        workers = workers,
         seconds_interval = seconds_interval,
         seconds_timeout = seconds_timeout,
         seconds_launch = seconds_launch,
@@ -173,7 +183,6 @@ crew_class_launcher_cluster <- R6::R6Class(
         reset_packages = reset_packages,
         reset_options = reset_options,
         garbage_collection = garbage_collection,
-        crashes_error = crashes_error,
         tls = tls,
         r_arguments = r_arguments,
         options_metrics = options_metrics
@@ -193,35 +202,16 @@ crew_class_launcher_cluster <- R6::R6Class(
     #'   initiate the worker.
     #' @return A handle object to allow the termination of the worker
     #'   later on.
-    #' @param call Character of length 1, a namespaced call to
+    #' @param call Character string, a namespaced call to
     #'   [crew::crew_worker()]
     #'   which will run in the worker and accept tasks.
-    #' @param name Character of length 1, an informative worker name.
-    #' @param launcher Character of length 1, name of the launcher.
-    #' @param worker Positive integer of length 1, index of the worker.
-    #'   This worker index remains the same even when the current instance
-    #'   of the worker exits and a new instance launches.
-    #'   It is always between 1 and the maximum number of concurrent workers.
-    #' @param instance Character of length 1 to uniquely identify
-    #'   the current instance of the worker.
-    launch_worker = function(call, name, launcher, worker, instance) {
-      attempt <- self$crashes(index = worker) + 1L
-      if (private$.options_cluster$verbose && (attempt > 1L)) {
-        crew_message(
-          "Attempt ",
-          attempt,
-          " of ",
-          private$.crashes_error,
-          ": instance ",
-          instance,
-          " worker ",
-          worker,
-          " launcher ",
-          launcher
-        )
-      }
+    #' @param name Character string, an informative worker name.
+    #' @param launcher Character string, name of the launcher.
+    #' @param worker Character string, name of the worker instance.
+    #' @param instance Deprecated in `crew.cluster`
+    launch_worker = function(call, name, launcher, worker, instance = NULL) {
       lines <- c(
-        self$script(name = name, attempt = attempt),
+        self$script(name = name),
         paste("Rscript -e", shQuote(call))
       )
       if (is.null(private$.prefix)) {

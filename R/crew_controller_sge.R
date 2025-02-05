@@ -33,15 +33,17 @@ crew_controller_sge <- function(
   seconds_idle = 300,
   seconds_wall = Inf,
   seconds_exit = NULL,
-  retry_tasks = TRUE,
+  retry_tasks = NULL,
   tasks_max = Inf,
   tasks_timers = 0L,
   reset_globals = TRUE,
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  crashes_error = 5L,
+  crashes_error = NULL,
   r_arguments = c("--no-save", "--no-restore"),
+  crashes_max = 5L,
+  backup = NULL,
   options_metrics = crew::crew_options_metrics(),
   options_cluster = crew.cluster::crew_options_sge(),
   verbose = NULL,
@@ -60,20 +62,34 @@ crew_controller_sge <- function(
   sge_cores = NULL,
   sge_gpu = NULL
 ) {
+  crew::crew_deprecate(
+    name = "crashes_error",
+    date = "2025-01-27",
+    version = "0.3.4",
+    alternative = "crashes_max",
+    condition = "message",
+    value = crashes_error
+  )
+  crew::crew_deprecate(
+    name = "retry_tasks",
+    date = "2025-01-27",
+    version = "0.3.e4",
+    alternative = "none",
+    condition = "message",
+    value = retry_tasks
+  )
   client <- crew::crew_client(
-    name = name,
-    workers = workers,
     host = host,
     port = port,
     tls = tls,
     tls_enable = tls_enable,
     tls_config = tls_config,
     seconds_interval = seconds_interval,
-    seconds_timeout = seconds_timeout,
-    retry_tasks = retry_tasks
+    seconds_timeout = seconds_timeout
   )
   launcher <- crew_launcher_sge(
     name = name,
+    workers = workers,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
@@ -85,7 +101,6 @@ crew_controller_sge <- function(
     reset_packages = reset_packages,
     reset_options = reset_options,
     garbage_collection = garbage_collection,
-    crashes_error = crashes_error,
     tls = tls,
     r_arguments = r_arguments,
     options_metrics = options_metrics,
@@ -106,7 +121,12 @@ crew_controller_sge <- function(
     sge_cores = sge_cores,
     sge_gpu = sge_gpu
   )
-  controller <- crew::crew_controller(client = client, launcher = launcher)
+  controller <- crew::crew_controller(
+    client = client,
+    launcher = launcher,
+    crashes_max = crashes_max,
+    backup = backup
+  )
   controller$validate()
   controller
 }

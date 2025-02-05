@@ -29,6 +29,7 @@
 #' @param sge_gpu Deprecated. Use `options_cluster` instead.
 crew_launcher_sge <- function(
   name = NULL,
+  workers = 1L,
   seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
@@ -40,7 +41,7 @@ crew_launcher_sge <- function(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  crashes_error = 5L,
+  crashes_error = NULL,
   tls = crew::crew_tls(mode = "automatic"),
   r_arguments = c("--no-save", "--no-restore"),
   options_metrics = crew::crew_options_metrics(),
@@ -62,6 +63,14 @@ crew_launcher_sge <- function(
   sge_gpu = NULL
 ) {
   name <- as.character(name %|||% crew::crew_random_name())
+  crew::crew_deprecate(
+    name = "crashes_error",
+    date = "2025-01-27",
+    version = "0.3.4",
+    alternative = "crashes_max",
+    condition = "message",
+    value = crashes_error
+  )
   if (!is.null(command_delete)) {
     crew::crew_deprecate(
       name = "command_delete",
@@ -102,6 +111,7 @@ crew_launcher_sge <- function(
   }
   launcher <- crew_class_launcher_sge$new(
     name = name,
+    workers = workers,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout,
     seconds_launch = seconds_launch,
@@ -113,7 +123,6 @@ crew_launcher_sge <- function(
     reset_packages = reset_packages,
     reset_options = reset_options,
     garbage_collection = garbage_collection,
-    crashes_error = crashes_error,
     tls = tls,
     r_arguments = r_arguments,
     options_metrics = options_metrics,
@@ -153,14 +162,6 @@ crew_class_launcher_sge <- R6::R6Class(
     #' @return Character vector of the lines of the job script.
     #' @param name Character of length 1, name of the job. For inspection
     #'   purposes, you can supply a mock job name.
-    #' @param attempt Positive integer, number of the current attempt.
-    #'   The attempt number increments each time a worker exits
-    #'   without completing all its tasks, and it resets
-    #'   back to 1 if a worker instance successfully completes
-    #'   all its tasks and then exits normally.
-    #'   By assigning vector arguments
-    #'   to the cluster-specific options of the controller,
-    #'   you can configure different sets of resources for different attempts.
     #' @examples
     #' if (identical(Sys.getenv("CREW_EXAMPLES"), "true")) {
     #' launcher <- crew_launcher_sge(
@@ -169,8 +170,8 @@ crew_class_launcher_sge <- R6::R6Class(
     #' )
     #' launcher$script(name = "my_job_name")
     #' }
-    script = function(name, attempt) {
-      options <- crew_options_slice(private$.options_cluster, attempt)
+    script = function(name) {
+      options <- private$.options_cluster
       c(
         paste("#$ -N", name),
         if_any(options$cwd, "#$ -cwd", character(0L)),

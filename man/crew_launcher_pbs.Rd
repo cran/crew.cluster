@@ -7,6 +7,7 @@ PBS or TORQUE workers.}
 \usage{
 crew_launcher_pbs(
   name = NULL,
+  workers = 1L,
   seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
@@ -18,7 +19,7 @@ crew_launcher_pbs(
   reset_packages = FALSE,
   reset_options = FALSE,
   garbage_collection = FALSE,
-  crashes_error = 5L,
+  crashes_error = NULL,
   tls = crew::crew_tls(mode = "automatic"),
   r_arguments = c("--no-save", "--no-restore"),
   options_metrics = crew::crew_options_metrics(),
@@ -39,12 +40,22 @@ crew_launcher_pbs(
 )
 }
 \arguments{
-\item{name}{Name of the launcher.}
+\item{name}{Character string, name of the launcher. If the name is
+\code{NULL}, then a name is automatically generated when the launcher starts.}
+
+\item{workers}{Maximum number of workers to run concurrently
+when auto-scaling, excluding task retries and manual calls to \code{launch()}.
+Special workers allocated for task retries
+do not count towards this limit, so the number of workers running at a
+given time may exceed this maximum.
+A smaller number of workers may run if the number of executing tasks
+is smaller than the supplied value of the \code{workers} argument.}
 
 \item{seconds_interval}{Number of seconds between
 polling intervals waiting for certain internal
-synchronous operations to complete,
-such as checking \code{mirai::status()}.}
+synchronous operations to complete. In certain cases, exponential
+backoff is used with this argument passed to \code{seconds_max}
+in a \code{\link[crew:crew_throttle]{crew_throttle()}} object.}
 
 \item{seconds_timeout}{Number of seconds until timing
 out while waiting for certain synchronous operations to complete,
@@ -95,14 +106,7 @@ because packages sometimes rely on options they set at loading time.}
 \item{garbage_collection}{\code{TRUE} to run garbage collection between
 tasks, \code{FALSE} to skip.}
 
-\item{crashes_error}{Positive integer scalar. If a worker exits
-\code{crashes_error} times in a row without completing all its assigned
-tasks, then the launcher throws an informative error.
-The reason for \code{crashes_error}
-is to avoid an infinite loop where a task crashes a worker
-(through a segfault, maxing out memory, etc) but the worker always
-relaunches. To monitor the resources of \code{crew} workers,
-please see \url{https://wlandau.github.io/crew/articles/logging.html}.}
+\item{crashes_error}{Deprecated on 2025-01-13 (\code{crew} version 0.10.2.9002).}
 
 \item{tls}{A TLS configuration object from \code{\link[crew:crew_tls]{crew_tls()}}.}
 
