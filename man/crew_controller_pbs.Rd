@@ -13,6 +13,7 @@ crew_controller_pbs(
   tls = crew::crew_tls(mode = "automatic"),
   tls_enable = NULL,
   tls_config = NULL,
+  serialization = NULL,
   seconds_interval = 0.25,
   seconds_timeout = 60,
   seconds_launch = 86400,
@@ -48,9 +49,16 @@ crew_controller_pbs(
 )
 }
 \arguments{
-\item{name}{Deprecated on 2025-01-14 (\code{crew} version 0.10.2.9002).}
+\item{name}{Character string, name of the launcher. If the name is
+\code{NULL}, then a name is automatically generated when the launcher starts.}
 
-\item{workers}{Deprecated on 2025-01-13 (\code{crew} version 0.10.2.9002).}
+\item{workers}{Maximum number of workers to run concurrently
+when auto-scaling, excluding task retries and manual calls to \code{launch()}.
+Special workers allocated for task retries
+do not count towards this limit, so the number of workers running at a
+given time may exceed this maximum.
+A smaller number of workers may run if the number of executing tasks
+is smaller than the supplied value of the \code{workers} argument.}
 
 \item{host}{IP address of the \code{mirai} client to send and receive tasks.
 If \code{NULL}, the host defaults to the local IP address.}
@@ -68,10 +76,18 @@ Use argument \code{tls} instead.}
 \item{tls_config}{Deprecated on 2023-09-15 in version 0.4.1.
 Use argument \code{tls} instead.}
 
+\item{serialization}{Either \code{NULL} (default) or an object produced by
+\code{\link[mirai:serial_config]{mirai::serial_config()}} to control the serialization
+of data sent to workers. This can help with either more efficient
+data transfers or to preserve attributes of otherwise
+non-exportable objects (such as \code{torch} tensors or \code{arrow} tables).
+See \code{?mirai::serial_config} for details.}
+
 \item{seconds_interval}{Number of seconds between
 polling intervals waiting for certain internal
-synchronous operations to complete,
-such as checking \code{mirai::status()}}
+synchronous operations to complete. In certain cases, exponential
+backoff is used with this argument passed to \code{seconds_max}
+in a \code{\link[crew:crew_throttle]{crew_throttle()}} object.}
 
 \item{seconds_timeout}{Number of seconds until timing
 out while waiting for certain synchronous operations to complete,

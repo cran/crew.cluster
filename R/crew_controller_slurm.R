@@ -9,8 +9,8 @@
 #'   with caution and report bugs to
 #'   <https://github.com/wlandau/crew.cluster>.
 #' @inheritSection crew.cluster-package Attribution
-#' @inheritParams crew::crew_client
 #' @inheritParams crew_launcher_slurm
+#' @inheritParams crew::crew_client
 #' @inheritParams crew::crew_controller
 #' @param seconds_exit Deprecated on 2023-09-21 in version 0.1.2.9000.
 #'   No longer necessary.
@@ -31,6 +31,7 @@ crew_controller_slurm <- function(
   tls = crew::crew_tls(mode = "automatic"),
   tls_enable = NULL,
   tls_config = NULL,
+  serialization = NULL,
   seconds_interval = 0.25,
   seconds_timeout = 60,
   seconds_launch = 86400,
@@ -86,6 +87,7 @@ crew_controller_slurm <- function(
     tls = tls,
     tls_enable = tls_enable,
     tls_config = tls_config,
+    serialization = serialization,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout
   )

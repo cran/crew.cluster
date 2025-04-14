@@ -1,3 +1,15 @@
+# crew.cluster 0.3.7
+
+* Add `n_tasks` to `crew_options_slurm()`
+
+# crew.cluster 0.3.6
+
+* Fix links.
+
+# crew.cluster 0.3.5
+
+* Add a new `serialization` argument to all controllers.
+
 # crew.cluster 0.3.4
 
 * Deprecate retryable options because `crew` 1.0.0 moved away from them.
