@@ -45,8 +45,7 @@ Other cluster:
 \itemize{
 \item \href{#method-crew_class_launcher_cluster-new}{\code{crew_class_launcher_cluster$new()}}
 \item \href{#method-crew_class_launcher_cluster-validate}{\code{crew_class_launcher_cluster$validate()}}
-\item \href{#method-crew_class_launcher_cluster-launch_worker}{\code{crew_class_launcher_cluster$launch_worker()}}
-\item \href{#method-crew_class_launcher_cluster-terminate_worker}{\code{crew_class_launcher_cluster$terminate_worker()}}
+\item \href{#method-crew_class_launcher_cluster-launch_workers}{\code{crew_class_launcher_cluster$launch_workers()}}
 }
 }
 \if{html}{\out{
@@ -55,15 +54,14 @@ Other cluster:
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="call"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-call'><code>crew::crew_class_launcher$call()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="crashes"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-crashes'><code>crew::crew_class_launcher$crashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="launch"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-launch'><code>crew::crew_class_launcher$launch()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="launch_worker"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-launch_worker'><code>crew::crew_class_launcher$launch_worker()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="poll"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-poll'><code>crew::crew_class_launcher$poll()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="resolve"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-resolve'><code>crew::crew_class_launcher$resolve()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="scale"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-scale'><code>crew::crew_class_launcher$scale()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="set_name"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-set_name'><code>crew::crew_class_launcher$set_name()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="settings"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-settings'><code>crew::crew_class_launcher$settings()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="start"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-start'><code>crew::crew_class_launcher$start()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="terminate"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-terminate'><code>crew::crew_class_launcher$terminate()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="terminate_workers"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-terminate_workers'><code>crew::crew_class_launcher$terminate_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="crew" data-topic="crew_class_launcher" data-id="update"><a href='../../crew/html/crew_class_launcher.html#method-crew_class_launcher-update'><code>crew::crew_class_launcher$update()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -151,19 +149,12 @@ Validate the launcher.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-crew_class_launcher_cluster-launch_worker"></a>}}
-\if{latex}{\out{\hypertarget{method-crew_class_launcher_cluster-launch_worker}{}}}
-\subsection{Method \code{launch_worker()}}{
-Launch a local process worker which will
-dial into a socket.
+\if{html}{\out{<a id="method-crew_class_launcher_cluster-launch_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-crew_class_launcher_cluster-launch_workers}{}}}
+\subsection{Method \code{launch_workers()}}{
+Launch a job array
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_cluster$launch_worker(
-  call,
-  name,
-  launcher,
-  worker,
-  instance = NULL
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_cluster$launch_workers(call, n)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -173,13 +164,8 @@ dial into a socket.
 \code{\link[crew:crew_worker]{crew::crew_worker()}}
 which will run in the worker and accept tasks.}
 
-\item{\code{name}}{Character string, an informative worker name.}
-
-\item{\code{launcher}}{Character string, name of the launcher.}
-
-\item{\code{worker}}{Character string, name of the worker instance.}
-
-\item{\code{instance}}{Deprecated in \code{crew.cluster}}
+\item{\code{n}}{Positive integer of length 1, number of workers to launch
+in the current round of auto-scaling.}
 }
 \if{html}{\out{</div>}}
 }
@@ -191,27 +177,6 @@ initiate the worker.
 \subsection{Returns}{
 A handle object to allow the termination of the worker
 later on.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-crew_class_launcher_cluster-terminate_worker"></a>}}
-\if{latex}{\out{\hypertarget{method-crew_class_launcher_cluster-terminate_worker}{}}}
-\subsection{Method \code{terminate_worker()}}{
-Terminate a local process worker.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{crew_class_launcher_cluster$terminate_worker(handle)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{handle}}{A process handle object previously
-returned by \code{launch_worker()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{NULL} (invisibly).
 }
 }
 }

@@ -1,15 +1,10 @@
-#' @title `r lifecycle::badge('experimental')` Create a launcher with
+#' @title `r lifecycle::badge("maturing")` Create a launcher with
 #'   SLURM workers.
 #' @export
 #' @family slurm
 #' @description Create an `R6` object to launch and maintain
 #'   workers as SLURM jobs.
-#' @details WARNING: the `crew.cluster` SLURM plugin is experimental
-#'   and has not actually been tested on a SLURM cluster. Please proceed
-#'   with caution and report bugs to
-#'   <https://github.com/wlandau/crew.cluster>.
-#'
-#'   To launch a SLURM worker, this launcher
+#' @details To launch a SLURM worker, this launcher
 #'   creates a temporary job script with a call to `crew::crew_worker()`
 #'   and submits it as an SLURM job with `sbatch`. To see most of the lines
 #'   of the job script in advance, use the `script()` method of the launcher.
@@ -141,11 +136,6 @@ crew_class_launcher_slurm <- R6::R6Class(
   classname = "crew_class_launcher_slurm",
   inherit = crew_class_launcher_cluster,
   cloneable = FALSE,
-  private = list(
-    .args_terminate = function(name) {
-      c("--name", shQuote(name))
-    }
-  ),
   public = list(
     #' @description Validate the launcher.
     #' @return `NULL` (invisibly). Throws an error if a field is invalid.
@@ -166,6 +156,9 @@ crew_class_launcher_slurm <- R6::R6Class(
     #' @return Character vector of the lines of the job script.
     #' @param name Character of length 1, name of the job. For inspection
     #'   purposes, you can supply a mock job name.
+    #' @param n Positive integer of length 1, number of crew workers
+    #'   (i.e. cluster jobs) to launch in the current round
+    #'   of auto-scaling.
     #' @examples
     #' if (identical(Sys.getenv("CREW_EXAMPLES"), "true")) {
     #' launcher <- crew_launcher_slurm(
@@ -175,11 +168,12 @@ crew_class_launcher_slurm <- R6::R6Class(
     #' )
     #' launcher$script(name = "my_job_name")
     #' }
-    script = function(name) {
+    script = function(name, n) {
       options <- private$.options_cluster
       c(
         "#!/bin/sh",
         paste0("#SBATCH --job-name=", name),
+        paste0("#SBATCH --array=1-", n),
         if_any(
           is.null(options$log_output),
           character(0L),

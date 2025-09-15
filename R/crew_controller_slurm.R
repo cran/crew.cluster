@@ -1,13 +1,9 @@
-#' @title `r lifecycle::badge("experimental")` Create a controller with a
+#' @title `r lifecycle::badge("maturing")` Create a controller with a
 #'   SLURM launcher.
 #' @export
 #' @family slurm
 #' @description Create an `R6` object to submit tasks and
 #'   launch workers on SLURM workers.
-#' @details WARNING: the `crew.cluster` SLURM plugin is experimental
-#'   and has not actually been tested on a SLURM cluster. Please proceed
-#'   with caution and report bugs to
-#'   <https://github.com/wlandau/crew.cluster>.
 #' @inheritSection crew.cluster-package Attribution
 #' @inheritParams crew::crew_controller
 #' @inheritParams crew_launcher_slurm
@@ -32,7 +28,8 @@ crew_controller_slurm <- function(
   tls_enable = NULL,
   tls_config = NULL,
   serialization = NULL,
-  seconds_interval = 0.25,
+  profile = crew::crew_random_name(),
+  seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = 300,
@@ -88,6 +85,7 @@ crew_controller_slurm <- function(
     tls_enable = tls_enable,
     tls_config = tls_config,
     serialization = serialization,
+    profile = profile,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout
   )

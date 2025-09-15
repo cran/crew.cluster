@@ -2,7 +2,7 @@
 % Please edit documentation in R/crew_controller_slurm.R
 \name{crew_controller_slurm}
 \alias{crew_controller_slurm}
-\title{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Create a controller with a
+\title{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}} Create a controller with a
 SLURM launcher.}
 \usage{
 crew_controller_slurm(
@@ -14,7 +14,8 @@ crew_controller_slurm(
   tls_enable = NULL,
   tls_config = NULL,
   serialization = NULL,
-  seconds_interval = 0.25,
+  profile = crew::crew_random_name(),
+  seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = 300,
@@ -83,6 +84,8 @@ data transfers or to preserve attributes of otherwise
 non-exportable objects (such as \code{torch} tensors or \code{arrow} tables).
 See \code{?mirai::serial_config} for details.}
 
+\item{profile}{Character string, compute profile for \code{\link[mirai:daemons]{mirai::daemons()}}.}
+
 \item{seconds_interval}{Number of seconds between
 polling intervals waiting for certain internal
 synchronous operations to complete. In certain cases, exponential
@@ -91,7 +94,7 @@ in a \code{\link[crew:crew_throttle]{crew_throttle()}} object.}
 
 \item{seconds_timeout}{Number of seconds until timing
 out while waiting for certain synchronous operations to complete,
-such as checking \code{mirai::status()}.}
+such as checking \code{mirai::info()}.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -119,11 +122,8 @@ No longer necessary.}
 \item{retry_tasks}{Deprecated on 2025-01-13 (\code{crew} version 0.10.2.9002).}
 
 \item{tasks_max}{Maximum number of tasks that a worker will do before
-exiting. See the \code{maxtasks} argument of \code{mirai::daemon()}.
-\code{crew} does not
-excel with perfectly transient workers because it does not micromanage
-the assignment of tasks to workers, it is recommended to set
-\code{tasks_max} to a value greater than 1.}
+exiting. Also determines how often the controller auto-scales.
+See the Auto-scaling section for details.}
 
 \item{tasks_timers}{Number of tasks to do before activating
 the timers for \code{seconds_idle} and \code{seconds_wall}.
@@ -230,12 +230,6 @@ Use \code{options_cluster} instead.}
 \description{
 Create an \code{R6} object to submit tasks and
 launch workers on SLURM workers.
-}
-\details{
-WARNING: the \code{crew.cluster} SLURM plugin is experimental
-and has not actually been tested on a SLURM cluster. Please proceed
-with caution and report bugs to
-\url{https://github.com/wlandau/crew.cluster}.
 }
 \section{Attribution}{
 

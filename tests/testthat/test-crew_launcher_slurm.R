@@ -19,7 +19,7 @@ test_that("valid populated crew_launcher_slurm()", {
 test_that("invalid crew_launcher_slurm(): SLURM field", {
   x <- crew_launcher_slurm()
   private <- crew_private(x)
-  private$.options_cluster$cpus_per_task <- - 1L
+  private$.options_cluster$cpus_per_task <- -1L
   expect_error(x$validate(), class = "crew_error")
 })
 
@@ -30,11 +30,12 @@ test_that("crew_launcher_slurm() script() nearly empty", {
   lines <- c(
     "#!/bin/sh",
     "#SBATCH --job-name=a_job",
+    "#SBATCH --array=1-7",
     "#SBATCH --output=/dev/null",
     "#SBATCH --error=/dev/null",
     "#SBATCH --ntasks=1"
   )
-  expect_equal(x$script(name = "a_job"), lines)
+  expect_equal(x$script(name = "a_job", n = 7L), lines)
 })
 
 test_that("crew_launcher_slurm() script() all lines", {
@@ -49,10 +50,11 @@ test_that("crew_launcher_slurm() script() all lines", {
       time_minutes = 57
     )
   )
-  out <- x$script(name = "this_job")
+  out <- x$script(name = "this_job", n = 9L)
   exp <- c(
     "#!/bin/sh",
     "#SBATCH --job-name=this_job",
+    "#SBATCH --array=1-9",
     "#SBATCH --output=log1",
     "#SBATCH --error=log2",
     "#SBATCH --mem=4198M",
@@ -64,15 +66,6 @@ test_that("crew_launcher_slurm() script() all lines", {
     "echo 'start'"
   )
   expect_equal(out, exp)
-})
-
-test_that(".args_terminate()", {
-  x <- crew_launcher_slurm()
-  private <- crew_private(x)
-  expect_equal(
-    private$.args_terminate(name = "my_job"),
-    c("--name", shQuote("my_job"))
-  )
 })
 
 test_that("deprecate command_delete", {

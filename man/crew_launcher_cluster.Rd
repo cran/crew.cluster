@@ -52,7 +52,7 @@ in a \code{\link[crew:crew_throttle]{crew_throttle()}} object.}
 
 \item{seconds_timeout}{Number of seconds until timing
 out while waiting for certain synchronous operations to complete,
-such as checking \code{mirai::status()}.}
+such as checking \code{mirai::info()}.}
 
 \item{seconds_launch}{Seconds of startup time to allow.
 A worker is unconditionally assumed to be alive
@@ -75,11 +75,8 @@ have completed.
 See the \code{walltime} argument of \code{mirai::daemon()}.}
 
 \item{tasks_max}{Maximum number of tasks that a worker will do before
-exiting. See the \code{maxtasks} argument of \code{mirai::daemon()}.
-\code{crew} does not
-excel with perfectly transient workers because it does not micromanage
-the assignment of tasks to workers, it is recommended to set
-\code{tasks_max} to a value greater than 1.}
+exiting. Also determines how often the controller auto-scales.
+See the Auto-scaling section for details.}
 
 \item{tasks_timers}{Number of tasks to do before activating
 the timers for \code{seconds_idle} and \code{seconds_wall}.

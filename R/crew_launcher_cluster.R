@@ -116,12 +116,8 @@ crew_class_launcher_cluster <- R6::R6Class(
   cloneable = FALSE,
   private = list(
     .options_cluster = NULL,
-    .prefix = NULL,
     .args_launch = function(script) {
       shQuote(script)
-    },
-    .args_terminate = function(name) {
-      shQuote(name)
     }
   ),
   active = list(
@@ -196,8 +192,7 @@ crew_class_launcher_cluster <- R6::R6Class(
       crew_options_validate(private$.options_cluster)
       invisible()
     },
-    #' @description Launch a local process worker which will
-    #'   dial into a socket.
+    #' @description Launch a job array
     #' @details The `call` argument is R code that will run to
     #'   initiate the worker.
     #' @return A handle object to allow the termination of the worker
@@ -205,29 +200,28 @@ crew_class_launcher_cluster <- R6::R6Class(
     #' @param call Character string, a namespaced call to
     #'   [crew::crew_worker()]
     #'   which will run in the worker and accept tasks.
-    #' @param name Character string, an informative worker name.
-    #' @param launcher Character string, name of the launcher.
-    #' @param worker Character string, name of the worker instance.
-    #' @param instance Deprecated in `crew.cluster`
-    launch_worker = function(call, name, launcher, worker, instance = NULL) {
+    #' @param n Positive integer of length 1, number of workers to launch
+    #'   in the current round of auto-scaling.
+    launch_workers = function(call, n) {
+      name <- paste0(
+        "crew-worker-",
+        self$name,
+        "-",
+        nanonext::random(n = 4L)
+      )
       lines <- c(
-        self$script(name = name),
+        self$script(name = name, n = n),
         paste("Rscript -e", shQuote(call))
       )
-      if (is.null(private$.prefix)) {
-        if (!file.exists(private$.options_cluster$script_directory)) {
-          dir.create(
-            private$.options_cluster$script_directory,
-            recursive = TRUE
-          )
-        }
-        private$.prefix <- crew::crew_random_name()
+      if (!file.exists(private$.options_cluster$script_directory)) {
+        dir.create(
+          private$.options_cluster$script_directory,
+          recursive = TRUE
+        )
       }
-      script <- path_script(
-        dir = private$.options_cluster$script_directory,
-        prefix = private$.prefix,
-        launcher = launcher,
-        worker = worker
+      script <- file.path(
+        private$.options_cluster$script_directory,
+        paste0(name, ".sh")
       )
       writeLines(text = lines, con = script)
       system2(
@@ -238,23 +232,6 @@ crew_class_launcher_cluster <- R6::R6Class(
         wait = FALSE
       )
       list(name = name, script = script)
-    },
-    #' @description Terminate a local process worker.
-    #' @return `NULL` (invisibly).
-    #' @param handle A process handle object previously
-    #'   returned by `launch_worker()`.
-    terminate_worker = function(handle) {
-      unlink(handle$script)
-      if (nzchar(private$.options_cluster$command_terminate)) {
-        system2(
-          command = private$.options_cluster$command_terminate,
-          args = private$.args_terminate(name = handle$name),
-          stdout = if_any(private$.options_cluster$verbose, "", FALSE),
-          stderr = if_any(private$.options_cluster$verbose, "", FALSE),
-          wait = FALSE
-        )
-      }
-      invisible()
     }
   )
 )

@@ -1,3 +1,10 @@
+# crew.cluster 0.4.0
+
+* Remove `termiante_worker()` and deprecate `command_terminate` (https://github.com/wlandau/crew/pull/236).
+* Only use `call` and `name` in `launch_worker()`.
+* Support job arrays (#56, #57).
+* Allow custom compute profiles.
+
 # crew.cluster 0.3.8
 
 * Use `expect_no_error()` instead of `expect_silent()` to ensure compatibility with the deprecation cycle to fix https://github.com/wlandau/crew/issues/217.

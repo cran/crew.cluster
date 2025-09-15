@@ -32,7 +32,8 @@ crew_controller_lsf <- function(
   tls_enable = NULL,
   tls_config = NULL,
   serialization = NULL,
-  seconds_interval = 0.25,
+  profile = crew::crew_random_name(),
+  seconds_interval = 0.5,
   seconds_timeout = 60,
   seconds_launch = 86400,
   seconds_idle = 300,
@@ -87,6 +88,7 @@ crew_controller_lsf <- function(
     tls_enable = tls_enable,
     tls_config = tls_config,
     serialization = serialization,
+    profile = profile,
     seconds_interval = seconds_interval,
     seconds_timeout = seconds_timeout
   )
